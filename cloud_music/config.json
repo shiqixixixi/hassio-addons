@@ -1,6 +1,6 @@
 {
     "name": "cloud_music",
-    "version": "1.4.3",
+    "version": "4.8.11",
     "slug": "cloud_music_slug",
     "description": "connect cloud_music with home-assistant",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
