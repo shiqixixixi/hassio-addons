@@ -2,7 +2,7 @@
     "name": "cloud_music",
     "version": "4.8.11",
     "slug": "cloud_music_slug",
-    "description": "connect cloud_music with home-assistant",
+    "description": "把网易云api安装到hassos",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
     "startup": "application",
     "boot": "auto",
