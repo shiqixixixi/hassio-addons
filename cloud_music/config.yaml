@@ -1,9 +1,9 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
-name: Example add-on
-version: "1.2.0"
+name: NeteaseCloudMusicApi
+version: "0.0.1"
 slug: example
-description: Example add-on
-url: "https://github.com/home-assistant/addons-example/tree/main/example"
+description: NeteaseCloudMusicApi
+url: "https://github.com/shiqixixixi/hassio-addons/tree/main/example"
 arch:
   - armhf
   - armv7
