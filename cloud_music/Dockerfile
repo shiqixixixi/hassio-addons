@@ -26,7 +26,7 @@ COPY --chown=node:node ./NeteaseCloudMusicApi/* ./
 
 RUN npm cache verify
 
-RUN chmod +x ./*
+RUN chmod +x ./NeteaseCloudMusicApi/*
 
 RUN npm i --omit=dev --ignore-scripts
 
