@@ -26,7 +26,7 @@ COPY --chown=node:node ./NeteaseCloudMusicApi/* ./
 
 RUN npm cache verify
 
-RUN npm i --omit=dev --ignore-scripts
+RUN sudo npm i --omit=dev --ignore-scripts
 
 EXPOSE 3000
 
