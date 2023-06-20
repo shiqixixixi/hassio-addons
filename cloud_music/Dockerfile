@@ -28,7 +28,7 @@ RUN npm cache verify
 
 RUN chmod +x ./*
 
-RUN sudo npm i --omit=dev --ignore-scripts
+RUN npm i --omit=dev --ignore-scripts
 
 EXPOSE 3000
 
