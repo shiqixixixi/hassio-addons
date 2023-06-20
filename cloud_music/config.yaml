@@ -1,22 +1,47 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
-name: NeteaseCloudMusicApi
-version: "0.0.1"
-slug: CloudMusicApi 
-description: NeteaseCloudMusicApi
-url: "https://github.com/shiqixixixi/hassio-addons/tree/main/example"
-startup: "application"
-boot: "auto"
-image: "binaryify/netease_cloud_music_api"
-init: false
-map:
-  - share:rw
-options: 
-  - local_scan:true
-  - options:[]
-webui: "http://[HOST]:[PORT:3200]"
-arch:
-  - armhf
-  - armv7
-  - aarch64
-  - amd64
-  - i386
+#name: NeteaseCloudMusicApi
+#version: "0.0.1"
+#slug: CloudMusicApi 
+#description: NeteaseCloudMusicApi
+#url: "https://github.com/shiqixixixi/hassio-addons/tree/main/example"
+#startup: "application"
+#boot: "auto"
+#image: "binaryify/netease_cloud_music_api"
+#init: false
+#map:
+#  - share:rw
+#options: 
+#  - local_scan:true
+#  - options:[]
+#webui: "http://[HOST]:[PORT:3200]"
+#arch:
+#  - armhf
+#  - armv7
+#  - aarch64
+#  - amd64
+#  - i386
+{
+    "name": "NeteaseCloudMusicApi",
+    "version": "0.0.1",
+    "slug": "CloudMusicApi",
+    "description": "NeteaseCloudMusicApi",
+    "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+    "startup": "application",
+    "boot": "auto",
+    "url": "https://www.facebook.com/ewelink.support",
+    "host_network": false,
+    "ports": {
+        "3000/tcp": 3200
+    },
+    "ports_description": {
+        "3000/tcp": "Web interface"
+    },
+    "panel_icon": "mdi:earth",
+    "panel_title": "eWeLink Smart Home",
+    "hassio_api": true,
+    "webui": "http://[HOST]:[PORT:3200]",
+    "homeassistant_api": true,
+    "ingress": true,
+    "ingress_port": 3200,
+    "ingress_entry": ""
+}
