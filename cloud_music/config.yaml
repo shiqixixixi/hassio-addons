@@ -28,7 +28,7 @@
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
     "startup": "application",
     "boot": "auto",
-    "url": "https://www.facebook.com/ewelink.support",
+    "url": "https://github.com/shiqixixixi",
     "host_network": false,
     "ports": {
         "3000/tcp": 3200
