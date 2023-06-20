@@ -24,7 +24,7 @@ WORKDIR /app
 
 COPY --chown=node:node ./NeteaseCloudMusicApi/* ./
 
-RUN npm cache clean
+RUN npm cache verify
 
 RUN npm i --omit=dev --ignore-scripts
 
