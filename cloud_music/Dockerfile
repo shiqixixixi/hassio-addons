@@ -23,11 +23,11 @@ USER node
 WORKDIR /app
 
 #COPY --chown=node:node ./NeteaseCloudMusicApi/* /app
-COPY --chown=node:node ./NeteaseCloudMusicApi/* /app/
+COPY --chown=node:node ./NeteaseCloudMusicApi/* ./
 
 RUN npm cache verify
 
-RUN chmod a+x ./NeteaseCloudMusicApi/*
+#RUN chmod a+x ./NeteaseCloudMusicApi/*
 
 RUN npm i --omit=dev --ignore-scripts
 
