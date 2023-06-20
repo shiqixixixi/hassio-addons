@@ -26,6 +26,6 @@ COPY --chown=node:node ./NeteaseCloudMusicApi/* ./
 
 RUN npm i --omit=dev --ignore-scripts
 
-EXPOSE 3200
+EXPOSE 3000
 
 CMD [ "/sbin/tini", "--", "node", "app.js" ]
