@@ -18,12 +18,12 @@
     "panel_title": "NeteaseCloudMusicApi",
     "hassio_api": true,
     "webui": "http://[HOST]:[PORT:3200]",
-    "homeassistant_api": true,
+    "homeassistant_api": false,
     "ingress": true,
-    "auth_api": true,
-    "docker_api": true,
-    "host_dbus": true,
+    "auth_api": false,
+    "docker_api": false,
+    "host_dbus": false,
     "apparmor": false,
-    "ingress_port": 3200,
+    "ingress_port": 3000,
     "ingress_entry": ""
 }
