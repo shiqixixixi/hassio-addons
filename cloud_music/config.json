@@ -21,10 +21,10 @@
     "webui": "http://[HOST]:[PORT:3200]",
     "homeassistant_api": false,
     "ingress": true,
-    "auth_api": false,
-    "docker_api": false,
-    "host_dbus": false,
-    "apparmor": false,
+    "auth_api": true,
+    "docker_api": true,
+    "host_dbus": true,
+    "apparmor": true,
     "ingress_port": 3000,
     "ingress_entry": ""
 }
