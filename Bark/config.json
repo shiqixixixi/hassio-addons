@@ -9,13 +9,13 @@
     "url": "https://github.com/shiqixixixi",
     "host_network": false,
     "ports": {
-        "8081/tcp": 8081
+        "8080/tcp": 8080
     },
     "ports_description": {
-        "8081/tcp": "Web interface"
+        "8080/tcp": "Web interface"
     },
     "panel_icon": "mdi:earth",
-    "panel_title": "8081",
+    "panel_title": "Bark",
     "hassio_api": true,
     "hassio_role": "manager",
     "webui": "http://[HOST]:[PORT:8081]",
@@ -25,6 +25,6 @@
     "docker_api": false,
     "host_dbus": false,
     "apparmor": true,
-    "ingress_port": 8081,
+    "ingress_port": 8080,
     "ingress_entry": ""
 }
