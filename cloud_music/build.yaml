@@ -1,10 +1,10 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-dockerfile
 build_from:
-  aarch64: "ghcr.io/home-assistant/aarch64-base:3.15"
+  aarch64: "binaryify/netease_cloud_music_api"
   amd64: "binaryify/netease_cloud_music_api"
-  armhf: "ghcr.io/home-assistant/armhf-base:3.15"
-  armv7: "ghcr.io/home-assistant/armv7-base:3.15"
-  i386: "ghcr.io/home-assistant/i386-base:3.15"
+  armhf: "binaryify/netease_cloud_music_api"
+  armv7: "binaryify/netease_cloud_music_api"
+  i386: "binaryify/netease_cloud_music_api"
 labels:
   org.opencontainers.image.title: "Home Assistant Add-on: Example add-on"
   org.opencontainers.image.description: "Example add-on to use as a blueprint for new add-ons."

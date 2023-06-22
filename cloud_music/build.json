@@ -1,9 +1,9 @@
 {
     "build_from": {
-	"armhf" : "bestlibre/armhf-debian-base:stretch",
-    "armv7" : "bestlibre/armhf-debian-base:stretch",
-	"aarch64": "bestlibre/aarch64-debian-base:stretch",
-	"amd64" : "amd64/debian:stretch",
-	"i386" : "i386/debian:stretch"
+	"armhf" : "binaryify/netease_cloud_music_api",
+    "armv7" : "binaryify/netease_cloud_music_api",
+	"aarch64": "binaryify/netease_cloud_music_api",
+	"amd64" : "binaryify/netease_cloud_music_api",
+	"i386" : "binaryify/netease_cloud_music_api"
     }
 }

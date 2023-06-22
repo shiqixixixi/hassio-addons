@@ -1,4 +1,7 @@
-FROM node:lts-alpine
+ARG BUILD_FROM
+FROM $BUILD_FROM
+
+#FROM node:lts-alpine
 
 RUN apk add --no-cache tini
 
