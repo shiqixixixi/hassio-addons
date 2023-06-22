@@ -1,21 +1,21 @@
-#ARG BUILD_FROM
-#FROM $BUILD_FROM
+ARG BUILD_FROM
+FROM $BUILD_FROM
 
-FROM node:lts-alpine
+#FROM node:lts-alpine
 
-RUN apk add --no-cache tini
+#RUN apk add --no-cache tini
 
-ENV NODE_ENV production
-USER node
+ENV export PORT=9000 
+#USER node
 
-WORKDIR /app
+#WORKDIR /app
 
-COPY ["./NeteaseCloudMusicApi/", "/app"]
+#COPY ["./NeteaseCloudMusicApi/", "/app"]
 
-RUN cd /app
+#RUN cd /app
 
-RUN npm i --omit=dev --ignore-scripts
+#RUN npm i --omit=dev --ignore-scripts
 
-EXPOSE 3200
+#EXPOSE 3200
 
 CMD [ "/sbin/tini", "--", "node", "app.js" ]
