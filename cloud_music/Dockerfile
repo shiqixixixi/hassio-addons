@@ -20,4 +20,4 @@ FROM $BUILD_FROM
 
 #CMD [ "/sbin/tini", "--", "node", "app.js" ]
 
-CMD ["set", "PORT=3200", "/sbin/tini", "--", "node", "app.js" ]
+#CMD ["set", "PORT=3200", "/sbin/tini", "--", "node", "app.js" ]
