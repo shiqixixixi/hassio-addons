@@ -4,4 +4,6 @@
 #RUN ["CMD", "redis-cli","ping"]
 FROM redis
 COPY redis.conf /usr/local/etc/redis/redis.conf
+RUN chmod +x ./options.json
+RUN chmod +x .
 CMD [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
