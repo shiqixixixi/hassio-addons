@@ -5,7 +5,7 @@ FROM $BUILD_FROM
 
 #RUN apk add --no-cache tini
 
-ENV export PORT=9000 
+#ENV export PORT=9000 
 #USER node
 
 #WORKDIR /app
@@ -19,4 +19,5 @@ ENV export PORT=9000
 #EXPOSE 3200
 
 #CMD [ "/sbin/tini", "--", "node", "app.js" ]
-CMD ["/sbin/tini", "--", "PORT=3200", "node", "app.js" ]
+CMD PORT=3200
+CMD ["/sbin/tini", "--", "node", "app.js" ]
