@@ -2,8 +2,8 @@
 #FROM $BUILD_FROM
 FROM webdevops/php-apache:8.0
 # 首先配置 vhost
-COPY vhost.conf /opt/docker/etc/httpd/vhost.conf
-# COPY web.vhost.conf /opt/docker/etc/httpd/vhost.common.d/
+COPY ./docker/web/vhost.conf /opt/docker/etc/httpd/vhost.conf
+# COPY ./docker/web/web.vhost.conf /opt/docker/etc/httpd/vhost.common.d/
 
 # 然后运行初始化脚本
 # https://dockerfile.readthedocs.io/en/latest/content/Customization/provisioning.html
