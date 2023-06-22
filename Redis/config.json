@@ -1,8 +1,8 @@
 {
     "name": "Redis",
     "version": "6.0.16",
-    "slug": "Redis_server",
-    "description": "Redis",
+    "slug": "redis",
+    "description": "redis",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
     "startup": "application",
     "boot": "auto",
