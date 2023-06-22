@@ -1,0 +1,30 @@
+{
+    "name": "Redis",
+    "version": "6.0.16",
+    "slug": "Redis_server",
+    "description": "Redis",
+    "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+    "startup": "application",
+    "boot": "auto",
+    "url": "https://github.com/shiqixixixi",
+    "host_network": false,
+    "ports": {
+        "6379/tcp": 6379
+    },
+    "ports_description": {
+        "6379/tcp": "Web interface"
+    },
+    "panel_icon": "mdi:earth",
+    "panel_title": "Redis",
+    "hassio_api": true,
+    "hassio_role": "manager",
+    "webui": "http://[HOST]:[PORT:6379]",
+    "homeassistant_api": false,
+    "ingress": true,
+    "auth_api": false,
+    "docker_api": false,
+    "host_dbus": false,
+    "apparmor": true,
+    "ingress_port": 6379,
+    "ingress_entry": ""
+}

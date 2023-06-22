@@ -20,7 +20,7 @@ ENV MQTT_ON=false
 COPY ./docker/web/init.sh /opt/docker/provision/entrypoint.d/
 #CMD chmod +x /opt/docker/provision/entrypoint.d/init.sh
 RUN echo "session.save_handler = redis\n" >> /opt/docker/etc/php/php.webdevops.ini
-RUN echo "session.save_path = 'tcp://redis:6379'\n" >> /opt/docker/etc/php/php.webdevops.ini
+RUN echo "session.save_path = 'tcp://10.10.10.166:6379'\n" >> /opt/docker/etc/php/php.webdevops.ini
 RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdevops.ini
 
 # ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
