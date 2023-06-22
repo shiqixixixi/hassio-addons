@@ -5,17 +5,16 @@ FROM webdevops/php-apache:8.0
 COPY ./docker/web/vhost.conf /opt/docker/etc/httpd/vhost.conf
 # COPY ./docker/web/web.vhost.conf /opt/docker/etc/httpd/vhost.common.d/
 
-ENV DB_HOST=mariadb
-DB_PORT=3306
-DB_USERNAME=root
-DB_DATABASE=pushdeer
-DB_PASSWORD=theVeryp@ssw0rd
-      GO_PUSH_IOS_TOPIC=com.pushdeer.self.ios
-      - GO_PUSH_IOS_CLIP_TOPIC=com.pushdeer.self.ios.Clip
-      - APP_DEBUG=false
-      - MQTT_API_KEY=9LKo3
-      - MQTT_ON=false
-
+ENV DB_HOST=10.10.10.166
+ENV DB_PORT=3306
+ENV DB_USERNAME=pushdeer
+ENV DB_DATABASE=pushdeer
+ENV DB_PASSWORD=pushdeer
+ENV GO_PUSH_IOS_TOPIC=com.pushdeer.self.ios
+ENV GO_PUSH_IOS_CLIP_TOPIC=com.pushdeer.self.ios.Clip
+ENV APP_DEBUG=false
+ENV MQTT_API_KEY=9LKo3
+ENV MQTT_ON=false
 # 然后运行初始化脚本
 # https://dockerfile.readthedocs.io/en/latest/content/Customization/provisioning.html
 COPY ./docker/web/init.sh /opt/docker/provision/entrypoint.d/
