@@ -40,5 +40,6 @@ RUN chmod +x /etc/cron.d/larave-cron
 
 WORKDIR /app
 COPY  ./app /app
+RUN chmod +x /app/*
 
 EXPOSE 80 
