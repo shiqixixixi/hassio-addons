@@ -14,6 +14,6 @@ FROM $BUILD_FROM
 
 #RUN npm i --omit=dev --ignore-scripts
 
-#EXPOSE 3000
+EXPOSE 3000
 
-#CMD [ "/sbin/tini", "--", "node", "app.js" ]
+CMD [ "/sbin/tini", "--", "node", "app.js" ]
