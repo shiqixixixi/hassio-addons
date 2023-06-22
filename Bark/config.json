@@ -18,7 +18,7 @@
     "panel_title": "Bark",
     "hassio_api": true,
     "hassio_role": "manager",
-    "webui": "http://[HOST]:[PORT:8081]",
+    "webui": "http://[HOST]:[PORT:8080]",
     "homeassistant_api": false,
     "ingress": true,
     "auth_api": false,
