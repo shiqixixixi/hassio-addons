@@ -24,7 +24,7 @@ RUN echo "session.save_path = 'tcp://10.10.10.166:6379'\n" >> /opt/docker/etc/ph
 RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdevops.ini
 
 # ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
-RUN mkdir /data && mkdir /opt/docker/etc/supervisor.d
+RUN mkdir /data
 COPY ./docker/web/gorush /data/
 RUN chmod +x /data/gorush 
 
