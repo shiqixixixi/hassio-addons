@@ -3,17 +3,17 @@ FROM $BUILD_FROM
 
 #FROM node:lts-alpine
 
-RUN apk add --no-cache tini
+#RUN apk add --no-cache tini
 
-ENV NODE_ENV production
-USER node
+#ENV NODE_ENV production
+#USER node
 
-WORKDIR /app
+#WORKDIR /app
 
-COPY --chown=node:node . ./
+#COPY --chown=node:node . ./
 
-RUN npm i --omit=dev --ignore-scripts
+#RUN npm i --omit=dev --ignore-scripts
 
-EXPOSE 3000
+#EXPOSE 3000
 
-CMD [ "/sbin/tini", "--", "node", "app.js" ]
+#CMD [ "/sbin/tini", "--", "node", "app.js" ]
