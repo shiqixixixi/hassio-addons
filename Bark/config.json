@@ -1,6 +1,6 @@
 {
     "name": "Bark",
-    "version": "4.8.11",
+    "version": "2.1.5",
     "slug": "bare_server",
     "description": "Bark",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
