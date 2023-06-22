@@ -17,7 +17,7 @@
     "panel_icon": "mdi:earth",
     "panel_title": "NeteaseCloudMusicApi",
     "hassio_api": true,
-    "hassio_role":true,
+    "hassio_role": "manager",
     "webui": "http://[HOST]:[PORT:3200]",
     "homeassistant_api": false,
     "ingress": true,
