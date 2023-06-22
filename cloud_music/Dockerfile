@@ -12,6 +12,8 @@ WORKDIR /app
 
 COPY ["./NeteaseCloudMusicApi/", "/app"]
 
+RUN cd /app
+
 RUN npm i --omit=dev --ignore-scripts
 
 EXPOSE 3200
