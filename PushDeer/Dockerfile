@@ -38,4 +38,7 @@ RUN chmod +x /etc/cron.d/larave-cron
 # 在本目录下创建ssl目录，放入证书（server.crt，server.key），然后去掉下一行的注释
 # ADD ssl /app/ssl
 
+WORKDIR /app
+COPY  ./app /app
+
 EXPOSE 80 
