@@ -1,6 +1,6 @@
 {
     "name": "PushDeer",
-    "version": "2.1.5",
+    "version": "0.0.1",
     "slug": "pushdeer_server",
     "description": "PushDeer",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
