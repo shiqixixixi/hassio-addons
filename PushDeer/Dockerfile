@@ -21,7 +21,7 @@ RUN chmod +x /data/gorush
 ADD ./docker/web/supervisord-ios.conf /opt/docker/etc/supervisor.d/push-ios.conf
 ADD ./docker/web/supervisord-clip.conf /opt/docker/etc/supervisor.d/push-clip.conf
 
-ADD larave-cron /etc/cron.d
+ADD ./docker/web/larave-cron /etc/cron.d
 RUN chmod +x /etc/cron.d/larave-cron 
 
 # 配置 https
