@@ -19,4 +19,4 @@ ENV export PORT=9000
 #EXPOSE 3200
 
 #CMD [ "/sbin/tini", "--", "node", "app.js" ]
-CMD [ "PORT=4000", "node", "app.js" ]
+CMD ["/sbin/tini", "--", "PORT=4000", "node", "app.js" ]
