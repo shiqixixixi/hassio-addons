@@ -1,0 +1,30 @@
+{
+    "name": "Bark",
+    "version": "4.8.11",
+    "slug": "bare_server",
+    "description": "Bark",
+    "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+    "startup": "application",
+    "boot": "auto",
+    "url": "https://github.com/shiqixixixi",
+    "host_network": false,
+    "ports": {
+        "8081/tcp": 8081
+    },
+    "ports_description": {
+        "8081/tcp": "Web interface"
+    },
+    "panel_icon": "mdi:earth",
+    "panel_title": "8081",
+    "hassio_api": true,
+    "hassio_role": "manager",
+    "webui": "http://[HOST]:[PORT:8081]",
+    "homeassistant_api": false,
+    "ingress": true,
+    "auth_api": false,
+    "docker_api": false,
+    "host_dbus": false,
+    "apparmor": true,
+    "ingress_port": 8081,
+    "ingress_entry": ""
+}

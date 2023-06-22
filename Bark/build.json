@@ -1,0 +1,9 @@
+{
+    "build_from": {
+	"armhf" : "finab/bark-server",
+    "armv7" : "finab/bark-server",
+	"aarch64": "finab/bark-server",
+	"amd64" : "finab/bark-server",
+	"i386" : "finab/bark-server"
+    }
+}
