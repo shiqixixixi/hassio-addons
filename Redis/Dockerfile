@@ -1,4 +1,4 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 ENV ALLOW_EMPTY_PASSWORD yes 
-RUN ["CMD", "redis-cli","ping"]
+#RUN ["CMD", "redis-cli","ping"]
