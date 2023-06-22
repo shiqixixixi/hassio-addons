@@ -5,7 +5,7 @@ FROM $BUILD_FROM
 
 #RUN apk add --no-cache tini
 
-#ENV export PORT=9000 
+ENV TINI_SUBREAPER 1
 #USER node
 
 #WORKDIR /app
