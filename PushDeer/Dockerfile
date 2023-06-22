@@ -7,7 +7,7 @@ COPY ./docker/web/vhost.conf /opt/docker/etc/httpd/vhost.conf
 
 # 然后运行初始化脚本
 # https://dockerfile.readthedocs.io/en/latest/content/Customization/provisioning.html
-COPY init.sh /opt/docker/provision/entrypoint.d/
+COPY ./docker/web/init.sh /opt/docker/provision/entrypoint.d/
 #CMD chmod +x /opt/docker/provision/entrypoint.d/init.sh
 RUN echo "session.save_handler = redis\n" >> /opt/docker/etc/php/php.webdevops.ini
 RUN echo "session.save_path = 'tcp://redis:6379'\n" >> /opt/docker/etc/php/php.webdevops.ini
@@ -15,11 +15,11 @@ RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdev
 
 # ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
 RUN mkdir /data
-COPY gorush /data/gorush
+COPY ./docker/web/gorush /data/gorush
 RUN chmod +x /data/gorush 
 
-ADD supervisord-ios.conf /opt/docker/etc/supervisor.d/push-ios.conf
-ADD supervisord-clip.conf /opt/docker/etc/supervisor.d/push-clip.conf
+ADD ./docker/web/supervisord-ios.conf /opt/docker/etc/supervisor.d/push-ios.conf
+ADD ./docker/web/supervisord-clip.conf /opt/docker/etc/supervisor.d/push-clip.conf
 
 ADD larave-cron /etc/cron.d
 RUN chmod +x /etc/cron.d/larave-cron 
