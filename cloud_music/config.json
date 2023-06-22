@@ -7,7 +7,7 @@
     "startup": "application",
     "boot": "auto",
     "url": "https://github.com/shiqixixixi",
-    "host_network": false,
+    "host_network": true,
     "ports": {
         "3000/tcp": 3200
     },
@@ -20,6 +20,7 @@
     "webui": "http://[HOST]:[PORT:3200]",
     "homeassistant_api": true,
     "ingress": true,
-    "ingress_port": 3200,
+    "auth_api": true,
+    "ingress_port": 3000,
     "ingress_entry": ""
 }
