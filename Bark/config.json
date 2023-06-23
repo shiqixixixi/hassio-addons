@@ -14,17 +14,17 @@
     "ports_description": {
         "8080/tcp": "Web interface"
     },
-  "map": [
-    "config",
-    "share",
-    "ssl"
+    "map": [
+        "config",
+        "share",
+        "ssl"
   ],
-  "options": {
-    "configFolder": "Bark",
-    "ssl": true,
-    "useExternalUrl": true,
-    "certfile": "fullchain.pem",
-    "keyfile": "privkey.pem"
+    "options": {
+        "configFolder": "Bark",
+        "ssl": true,
+        "useExternalUrl": true,
+        "certfile": "fullchain.pem",
+        "keyfile": "privkey.pem"
   },
     "panel_icon": "mdi:earth",
     "panel_title": "Bark",
