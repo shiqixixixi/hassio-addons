@@ -6,6 +6,11 @@ COPY ./docker/web/vhost.conf /opt/docker/etc/httpd/vhost.conf
 RUN chmod +x /opt/docker/etc/httpd/vhost.conf
 # COPY ./docker/web/web.vhost.conf /opt/docker/etc/httpd/vhost.common.d/
 
+WORKDIR /app
+COPY  ./app /app
+RUN chmod +x /app/*
+
+
 ENV DB_HOST=10.10.10.166
 ENV DB_PORT=3306
 ENV DB_USERNAME=pushdeer
@@ -42,9 +47,5 @@ RUN chmod +x /etc/cron.d/larave-cron
 # 配置 https
 # 在本目录下创建ssl目录，放入证书（server.crt，server.key），然后去掉下一行的注释
 # ADD ssl /app/ssl
-
-WORKDIR /app
-COPY  ./app /app
-RUN chmod +x /app/*
 
 EXPOSE 80 
