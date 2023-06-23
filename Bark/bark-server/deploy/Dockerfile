@@ -1,9 +1,6 @@
-#ARG BUILD_FROM
-#FROM $BUILD_FROM
-
 FROM golang:1-alpine AS builder
 
-COPY ./bark-server/deploy/* /go/src/github.com/finb/bark-server
+COPY . /go/src/github.com/finb/bark-server
 
 WORKDIR /go/src/github.com/finb/bark-server
 
