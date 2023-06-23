@@ -18,14 +18,14 @@
         "config",
         "share",
         "ssl"
-  ],
+    ],
     "options": {
         "configFolder": "Bark",
         "ssl": true,
         "useExternalUrl": true,
         "certfile": "fullchain.pem",
         "keyfile": "privkey.pem"
-  },
+    },
     "panel_icon": "mdi:earth",
     "panel_title": "Bark",
     "hassio_api": true,
