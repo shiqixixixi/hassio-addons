@@ -22,8 +22,8 @@
     "homeassistant_api": false,
     "ingress": true,
     "auth_api": false,
-    "docker_api": false,
-    "host_dbus": false,
+    "docker_api": true,
+    "host_dbus": true,
     "apparmor": true,
     "ingress_port": 8800,
     "ingress_entry": ""
