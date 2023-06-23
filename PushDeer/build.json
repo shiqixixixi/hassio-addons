@@ -1,9 +1,9 @@
 {
     "build_from": {
-	"armhf" : "finab/bark-server",
-    "armv7" : "finab/bark-server",
-	"aarch64": "finab/bark-server",
-	"amd64" : "finab/bark-server",
-	"i386" : "finab/bark-server"
+	"armhf" : "ccr.ccs.tencentyun.com/ftqq/pushdeercore",
+    "armv7" : "ccr.ccs.tencentyun.com/ftqq/pushdeercore",
+	"aarch64": "ccr.ccs.tencentyun.com/ftqq/pushdeercore",
+	"amd64" : "ccr.ccs.tencentyun.com/ftqq/pushdeercore",
+	"i386" : "ccr.ccs.tencentyun.com/ftqq/pushdeercore"
     }
 }
