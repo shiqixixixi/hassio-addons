@@ -14,14 +14,13 @@
     "ports_description": {
         "8080/tcp": "Web interface"
     },
-    ],
   "map": [
     "config",
     "share",
     "ssl"
   ],
   "options": {
-    "configFolder": Bark",
+    "configFolder": "Bark",
     "ssl": true,
     "useExternalUrl": true,
     "certfile": "fullchain.pem",
