@@ -26,6 +26,13 @@
         "certfile": "fullchain.pem",
         "keyfile": "privkey.pem"
     },
+    "schema": {
+        "configFolder": "str",
+        "ssl": "bool",
+        "useExternalUrl": "bool",
+        "certfile": "str",
+        "keyfile": "str"
+    },
     "panel_icon": "mdi:earth",
     "panel_title": "Bark",
     "hassio_api": true,
