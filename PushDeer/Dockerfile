@@ -13,6 +13,6 @@ ENV APP_DEBUG=false
 ENV WEB_PHP_SOCKET=127.0.0.1:8000
 
 RUN mkdir -p /data
-COPY gorush /data
-ADD gorush /data
+COPY gorush /data/
+ADD gorush /data/
 RUN chmod +x /data/gorush 
