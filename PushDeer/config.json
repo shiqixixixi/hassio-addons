@@ -1,6 +1,6 @@
 {
     "name": "PushDeer",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "slug": "pushdeer_server",
     "description": "PushDeer",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -9,13 +9,9 @@
     "url": "https://github.com/shiqixixixi",
     "host_network": false,
     "ports": {
-        "80/tcp": 8801,
-        "443/tcp": 8803,
         "9000/tcp": 8800
     },
     "ports_description": {
-        "80/tcp": "Web interface",
-        "443/tcp": "Web interface",
         "9000/tcp": "Web interface"
     },
     "panel_icon": "mdi:earth",

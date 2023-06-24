@@ -1,7 +1,7 @@
 {
     "name": "Portainer-CN",
     "version": "2.16.2",
-    "slug": "portainer",
+    "slug": "portainer_cn",
     "description": "Portainer-CN",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
     "startup": "application",
