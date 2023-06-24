@@ -25,6 +25,6 @@
     "docker_api": false,
     "host_dbus": false,
     "apparmor": true,
-    "ingress_port": 3200,
+    "ingress_port": 3000,
     "ingress_entry": ""
 }
