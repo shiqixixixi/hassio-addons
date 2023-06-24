@@ -14,17 +14,15 @@
     "ports_description": {
         "9000/tcp": "Web interface"
     },
-    "panel_icon": "mdi:earth",
+    "panel_icon": "mdi:docker",
     "panel_title": "Portainer-CN",
     "hassio_api": true,
     "hassio_role": "admin",
     "webui": "http://[HOST]:[PORT:9090]",
-    "homeassistant_api": true,
     "ingress": true,
-    "auth_api": true,
     "docker_api": true,
-    "host_dbus": true,
-    "apparmor": false,
+    "apparmor": true,
     "ingress_port": 9000,
+    "ingress_stream":true,
     "ingress_entry": ""
 }
