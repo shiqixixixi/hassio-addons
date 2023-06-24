@@ -1,6 +1,7 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
+RUN mkdir /data
 COPY ./app/docker/web/gorush /data
 RUN chmod +x /data/gorush 
 
