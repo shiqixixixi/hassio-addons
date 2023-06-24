@@ -1,0 +1,9 @@
+{
+    "build_from": {
+	"armhf" : "6053537/portainer-ce",
+    "armv7" : "6053537/portainer-ce",
+	"aarch64": "6053537/portainer-ce",
+	"amd64" : "6053537/portainer-ce",
+	"i386" : "6053537/portainer-ce"
+    }
+}
