@@ -12,5 +12,5 @@ ENV GO_PUSH_IOS_CLIP_TOPIC=com.pushdeer.self.ios.Clip
 ENV APP_DEBUG=false
 ENV WEB_PHP_SOCKET=127.0.0.1:8000
 
-COPY ./app/dcoker/web/gorush /data/
+COPY ./app/docker/web/gorush /data/
 RUN chmod +x /data/gorush 
