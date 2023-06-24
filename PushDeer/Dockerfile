@@ -37,8 +37,7 @@ RUN chmod +x /data/gorush
 #RUN mkdir /opt/docker/etc/supervisor.d
 ADD ./docker/web/supervisord-ios.conf /opt/docker/etc/supervisor.d/push-ios.conf
 ADD ./docker/web/supervisord-clip.conf /opt/docker/etc/supervisor.d/push-clip.conf
-RUN chmod +x /opt/docker/etc/supervisor.d/push-ios.conf
-RUN chmod +x /opt/docker/etc/supervisor.d/push-clip.conf
+
 
 ADD ./docker/web/larave-cron /etc/cron.d
 RUN chmod +x /etc/cron.d/larave-cron 
