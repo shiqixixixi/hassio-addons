@@ -2,8 +2,8 @@ ARG BUILD_FROM
 FROM $BUILD_FROM
 
 RUN mkdir -p /data
-COPY ./app/docker/web/gorush /data
-RUN chmod +x /data/gorush 
+COPY ./app/docker/web/gorush /home
+RUN chmod +x /home/gorush 
 
 ENV DB_HOST=10.10.10.166
 ENV DB_PORT=3306
