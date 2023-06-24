@@ -5,9 +5,9 @@ RUN mkdir -p /data
 COPY ./app/docker/web/gorush /home
 RUN chmod +x /home/gorush 
 
-COPY run.sh /
-RUN chmod a+x /run.sh
-CMD [ "/run.sh" ]
+COPY run.sh /home/
+RUN chmod a+x /home/run.sh
+CMD [ "/home/run.sh" ]
 
 ENV DB_HOST=10.10.10.166
 ENV DB_PORT=3306
