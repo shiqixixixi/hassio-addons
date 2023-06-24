@@ -1,6 +1,6 @@
 {
     "name": "PushDeer",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "slug": "pushdeer_server",
     "description": "PushDeer",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -18,14 +18,14 @@
     "panel_title": "PushDeer",
     "panel_admin": false,
     "hassio_api": true,
-    "hassio_role": "manager",
+    "hassio_role": "admin",
     "webui": "http://[HOST]:[PORT:8800]",
-    "homeassistant_api": false,
+    "homeassistant_api": true,
     "ingress": true,
-    "auth_api": false,
-    "docker_api": false,
-    "host_dbus": false,
-    "apparmor": true,
+    "auth_api": true,
+    "docker_api": true,
+    "host_dbus": true,
+    "apparmor": false,
     "ingress_port": 8800,
     "ingress_entry": ""
 }
