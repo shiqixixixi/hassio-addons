@@ -18,7 +18,6 @@
     "panel_title": "Redis",
     "hassio_api": true,
     "hassio_role": "manager",
-    "webui": "http://[HOST]:[PORT:6379]",
     "homeassistant_api": false,
     "ingress": true,
     "auth_api": false,
