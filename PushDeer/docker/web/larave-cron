@@ -1,1 +1,1 @@
-* * * * * cd /app/api && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /app/api && php artisan schedule:run >> /data/null 2>&1
