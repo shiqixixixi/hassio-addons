@@ -30,9 +30,9 @@ RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdev
 
 # ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
 
-RUN mkdir -p /data
-COPY ./docker/web/gorush /data/
-RUN chmod +x /data/gorush 
+#RUN mkdir -p /data
+COPY ./docker/web/gorush /home/
+RUN chmod +x /home/gorush 
 
 #RUN mkdir /opt/docker/etc/supervisor.d
 ADD ./docker/web/supervisord-ios.conf /opt/docker/etc/supervisor.d/push-ios.conf
