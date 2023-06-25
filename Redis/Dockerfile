@@ -1,7 +1,7 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 ENV ALLOW_EMPTY_PASSWORD yes 
-CMD ["redis-cli","ping"]
+#CMD ["redis-cli","ping"]
 
 
 #FROM bitnami/redis
