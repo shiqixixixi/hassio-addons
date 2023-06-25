@@ -7,7 +7,7 @@
     "startup": "application",
     "boot": "auto",
     "url": "https://github.com/shiqixixixi",
-    "host_network": false,
+    "host_network": true,
     "ports": {
         "6379/tcp": 6379
     },
@@ -16,10 +16,10 @@
     },
     "panel_icon": "mdi:earth",
     "panel_title": "Redis",
-    "hassio_api": true,
+    "hassio_api": false,
     "hassio_role": "manager",
     "homeassistant_api": false,
-    "ingress": true,
+    "ingress": false,
     "auth_api": false,
     "docker_api": false,
     "host_dbus": false,
