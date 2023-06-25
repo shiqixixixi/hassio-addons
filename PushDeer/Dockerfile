@@ -3,11 +3,10 @@
 FROM webdevops/php-apache:8.0
 # 首先配置 vhost
 COPY ./docker/web/vhost.conf /opt/docker/etc/httpd/vhost.conf
-RUN chmod +x /opt/docker/etc/httpd/vhost.conf
 # COPY ./docker/web/web.vhost.conf /opt/docker/etc/httpd/vhost.common.d/
 
 WORKDIR /app
-COPY  ./app /app
+COPY  ./app /
 RUN chmod +x /app/*
 
 ENV DB_HOST=10.10.10.166
@@ -23,7 +22,7 @@ ENV MQTT_ON=false
 # 然后运行初始化脚本
 # https://dockerfile.readthedocs.io/en/latest/content/Customization/provisioning.html
 COPY ./docker/web/init.sh /opt/docker/provision/entrypoint.d/
-CMD chmod +x /opt/docker/provision/entrypoint.d/init.sh
+#CMD chmod +x /opt/docker/provision/entrypoint.d/init.sh
 RUN echo "session.save_handler = redis\n" >> /opt/docker/etc/php/php.webdevops.ini
 RUN echo "session.save_path = 'tcp://10.10.10.166:6379'\n" >> /opt/docker/etc/php/php.webdevops.ini
 RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdevops.ini
