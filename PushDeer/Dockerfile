@@ -6,8 +6,8 @@ COPY ./docker/web/vhost.conf /opt/docker/etc/httpd/vhost.conf
 # COPY ./docker/web/web.vhost.conf /opt/docker/etc/httpd/vhost.common.d/
 
 WORKDIR /app
-COPY ./app/api /app/
-COPY ./app/push /app/
+COPY ./app/api /app/api
+COPY ./app/push /app/push
 #RUN chmod +x /app
 
 ENV DB_HOST=10.10.10.166
