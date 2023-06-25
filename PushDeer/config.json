@@ -9,10 +9,10 @@
     "url": "https://github.com/shiqixixixi",
     "host_network": false,
     "ports": {
-        "9000/tcp": 8800
+        "80/tcp": 8800
     },
     "ports_description": {
-        "9000/tcp": "Web interface"
+        "80/tcp": "Web interface"
     },
     "panel_icon": "mdi:earth",
     "panel_title": "PushDeer",
@@ -26,6 +26,6 @@
     "docker_api": true,
     "host_dbus": true,
     "apparmor": false,
-    "ingress_port": 9000,
+    "ingress_port": 80,
     "ingress_entry": ""
 }
