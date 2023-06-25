@@ -54,7 +54,7 @@ queue:
   engine: "local" # support memory, redis, boltdb, buntdb or leveldb
   redis:
     cluster: false
-    addr: "redis:6379" # if cluster is true, you may set this to "localhost:6379,localhost:6380,localhost:6381"
+    addr: "10.10.10.166:6379" # if cluster is true, you may set this to "localhost:6379,localhost:6380,localhost:6381"
     password: ""
     db: 0
 
@@ -62,6 +62,6 @@ stat:
   engine: "redis" # support memory, redis, boltdb, buntdb or leveldb
   redis:
     cluster: false
-    addr: "redis:6379" # if cluster is true, you may set this to "localhost:6379,localhost:6380,localhost:6381"
+    addr: "10.10.10.166:6379" # if cluster is true, you may set this to "localhost:6379,localhost:6380,localhost:6381"
     password: ""
     db: 0
