@@ -7,7 +7,7 @@ COPY ./docker/web/vhost.conf /opt/docker/etc/httpd/vhost.conf
 
 WORKDIR /app
 COPY  ./app /
-RUN chmod +x /app/*
+#RUN chmod +x /app
 
 ENV DB_HOST=10.10.10.166
 ENV DB_PORT=3306
