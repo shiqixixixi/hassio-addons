@@ -44,6 +44,7 @@ RUN set -ex \
 
 COPY --from=builder /go/bin/bark-server /usr/local/bin/bark-server
 COPY --from=builder /go/src/github.com/finb/bark-server/bark-server/deploy/entrypoint.sh /entrypoint.sh
+RUN chmod a+x /entrypoint.sh
 
 VOLUME /data
 
