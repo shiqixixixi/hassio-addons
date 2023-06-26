@@ -7,7 +7,7 @@ WORKDIR /go/src/github.com/finb/bark-server
 RUN set -ex \
     && pwd \
     && ls -a \
-    && cd ./bark-server
+    && cd ./bark-server \
     && apk add git gcc libc-dev \
 #    && BUILD_VERSION=$(git describe --tags) \
     && BUILD_VERSION=v2.1.5-27-g2f24a8f \
