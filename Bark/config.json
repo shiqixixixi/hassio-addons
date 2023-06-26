@@ -6,7 +6,7 @@
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
     "startup": "application",
     "boot": "auto",
-    "url": "https://github.com/shiqixixixi",
+    "url": "https://github.com/Finb/bark-server",
     "host_network": false,
     "ports": {
         "8080/tcp": 8080

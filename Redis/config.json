@@ -6,7 +6,7 @@
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
     "startup": "application",
     "boot": "auto",
-    "url": "https://github.com/shiqixixixi",
+    "url": "https://github.com/shiqixixixi/hassio-addons",
     "host_network": true,
     "ports": {
         "6379/tcp": 6379
