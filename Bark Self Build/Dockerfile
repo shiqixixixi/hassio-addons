@@ -6,6 +6,7 @@ WORKDIR /go/src/github.com/finb/bark-server
 
 RUN set -ex \
     && pwd \
+    && ls -a \
     && apk add git gcc libc-dev \
     && BUILD_VERSION=$(git describe --tags) \
     && BUILD_DATE=$(date "+%F %T") \
