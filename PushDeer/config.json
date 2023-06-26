@@ -25,7 +25,7 @@
     "auth_api": false,
     "docker_api": true,
     "host_dbus": false,
-    "apparmor": true,
+    "apparmor": false,
     "ingress_port": 80,
     "ingress_entry": ""
 }
