@@ -8,9 +8,10 @@ RUN set -ex \
     && pwd \
     && ls -a \
     && apk add git gcc libc-dev \
-    && BUILD_VERSION=$(git describe --tags) \
+#    && BUILD_VERSION=$(git describe --tags) \
+    && BUILD_VERSION=v2.1.5-27-g2f24a8f \
     && BUILD_DATE=$(date "+%F %T") \
-    && COMMIT_SHA1=$(git rev-parse HEAD) \
+    && COMMIT_SHA1=f1c50cc1d941f07ea295d22d119b951d59c3f3b1 \
     && go install -trimpath -ldflags \
             "-X 'main.version=${BUILD_VERSION}' \
              -X 'main.buildDate=${BUILD_DATE}' \
