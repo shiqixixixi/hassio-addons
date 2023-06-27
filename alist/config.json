@@ -1,0 +1,35 @@
+{
+    "name": "alist",
+    "version": "2.1.5",
+    "slug": "alist",
+    "description": "alist",
+    "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+    "startup": "application",
+    "boot": "auto",
+    "url": "https://github.com/Finb/alist-server",
+    "host_network": false,
+    "ports": {
+        "5244/tcp": 5244
+    },
+    "ports_description": {
+        "5244/tcp": "Web interface"
+    },
+    "map": [
+        "config:rw",
+        "share",
+        "ssl"
+    ],
+    "panel_icon": "mdi:earth",
+    "panel_title": "alist",
+    "hassio_api": true,
+    "hassio_role": "manager",
+    "webui": "http://[HOST]:[PORT:5244]",
+    "homeassistant_api": false,
+    "ingress": true,
+    "auth_api": false,
+    "docker_api": false,
+    "host_dbus": false,
+    "apparmor": true,
+    "ingress_port": 5244,
+    "ingress_entry": ""
+}

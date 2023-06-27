@@ -1,0 +1,9 @@
+{
+    "build_from": {
+	"armhf" : "xhofe/alist",
+    "armv7" : "xhofe/alist",
+	"aarch64": "xhofe/alist",
+	"amd64" : "xhofe/alist",
+	"i386" : "xhofe/alist"
+    }
+}
