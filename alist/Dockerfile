@@ -7,8 +7,8 @@ RUN apk add --no-cache bash curl gcc git go musl-dev; \
 
 FROM alpine:3.18
 LABEL MAINTAINER="i@nn.ci"
-#VOLUME /opt/alist/data/ /config/alist/
-VOLUME  /config/alist/data/
+VOLUME /opt/alist/data/ 
+#VOLUME  /config/alist/data/
 WORKDIR /opt/alist/
 COPY --from=builder /app/bin/alist ./
 COPY ./alist/entrypoint.sh /entrypoint.sh
