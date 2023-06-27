@@ -1,6 +1,6 @@
 {
     "name": "alist",
-    "version": "3.19.0",
+    "version": "0.0.1",
     "slug": "alist",
     "description": "alist",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
