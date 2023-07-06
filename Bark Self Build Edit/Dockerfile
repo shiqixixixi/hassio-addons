@@ -4,20 +4,19 @@ COPY . /go/src/github.com/finb/bark-server
 
 WORKDIR /go/src/github.com/finb/bark-server
 
-RUN set -ex \
-    && pwd \
-    && ls -a \
-    && cd ./bark-server \
-    && apk add git gcc libc-dev \
-#    && BUILD_VERSION=$(git describe --tags) \
-    && BUILD_VERSION=v2.1.5-27-g2f24a8f \
-    && BUILD_DATE=$(date "+%F %T") \
-    && COMMIT_SHA1=f1c50cc1d941f07ea295d22d119b951d59c3f3b1 \
-    && go install -trimpath -ldflags \
-            "-X 'main.version=${BUILD_VERSION}' \
-             -X 'main.buildDate=${BUILD_DATE}' \
-             -X 'main.commitID=${COMMIT_SHA1}' \
-             -w -s"
+#RUN set -ex \
+#    && pwd \
+#    && ls -a \
+#    && cd ./bark-server \
+#    && apk add git gcc libc-dev \
+#    && BUILD_VERSION=v2.1.5-27-g2f24a8f \
+#    && BUILD_DATE=$(date "+%F %T") \
+#    && COMMIT_SHA1=f1c50cc1d941f07ea295d22d119b951d59c3f3b1 \
+#    && go install -trimpath -ldflags \
+#            "-X 'main.version=${BUILD_VERSION}' \
+#             -X 'main.buildDate=${BUILD_DATE}' \
+#             -X 'main.commitID=${COMMIT_SHA1}' \
+#             -w -s"
 
 
 
@@ -42,11 +41,12 @@ RUN set -ex \
     && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone
 
-COPY --from=builder /go/bin/bark-server /usr/local/bin/bark-server
+#COPY --from=builder /go/bin/bark-server /usr/local/bin/bark-server
+
+COPY --from=builder ./bark-server_linux_amd64_v4 /usr/local/bin/bark-server
+
 COPY --from=builder /go/src/github.com/finb/bark-server/bark-server/deploy/entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
-
-VOLUME /data
 
 EXPOSE 8082
 
