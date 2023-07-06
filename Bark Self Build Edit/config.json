@@ -1,6 +1,6 @@
 {
     "name": "Bark Self Build Edit",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "slug": "bark_server_self_build_edit",
     "description": "Bark Self Build Edit",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
