@@ -54,3 +54,5 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 #CMD ["bark-server"]
 CMD ["bark-server", "--addr", "0.0.0.0:8082", "--data", "/config/Bark/self build edit/"]
+#CMD ["bark-server", "--addr", "0.0.0.0:8082", "--dsn=barkedit:barkedit@tcp(10.10.10.166)/barkedit"]
+
