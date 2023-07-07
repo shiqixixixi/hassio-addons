@@ -1,9 +1,7 @@
-# Ityxx hassio-addons
+# HomeAssistant Ityxx hassio-addons
 
-## 安装
-
-[![Add repository on my Home Assistant][repository-badge]][repository-url]
-
+## 安装加载项
+[![添加本加载项到我的家庭助理][repository-badge]][repository-url]
 repository: https://github.com/shiqixixixi/hassio-addons
 
 
