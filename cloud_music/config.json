@@ -1,6 +1,6 @@
 {
     "name": "NeteaseCloudMusicApi",
-    "version": "4.8.11",
+    "version": "4.13.8",
     "slug": "cloud_music_api",
     "description": "NeteaseCloudMusicApi",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
