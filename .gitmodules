@@ -1,0 +1,3 @@
+[submodule "PushDeer/pushdeer/pushdeer"]
+	path = PushDeer/pushdeer/pushdeer
+	url = https://github.com/easychen/pushdeer.git
