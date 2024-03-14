@@ -28,6 +28,9 @@ RUN echo "session.save_handler = redis\n" >> /opt/docker/etc/php/php.webdevops.i
 RUN echo "session.save_path = 'tcp://10.10.10.166:6379'\n" >> /opt/docker/etc/php/php.webdevops.ini
 RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdevops.ini
 
+RUN sed 's/redis:6397/10.10.10.166:6397/g' /app/push/ios.yml
+RUN sed 's/redis:6397/10.10.10.166:6397/g' /app/push/clip.yml
+
 RUN echo "if [ ! -S /home/log ]; then rm -f /home/log;" > /opt/docker/bin/service.d/syslog-ng.d/10-init.sh
 # ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
 
