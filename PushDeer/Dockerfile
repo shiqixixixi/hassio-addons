@@ -22,7 +22,7 @@ ENV MQTT_API_KEY=9LKo3
 ENV MQTT_ON=false
 # 然后运行初始化脚本
 # https://dockerfile.readthedocs.io/en/latest/content/Customization/provisioning.html
-COPY .pushdeer/pushdeer/docker/web/init.sh /opt/docker/provision/entrypoint.d/
+COPY ./pushdeer/pushdeer/docker/web/init.sh /opt/docker/provision/entrypoint.d/
 #CMD chmod +x /opt/docker/provision/entrypoint.d/init.sh
 RUN echo "session.save_handler = redis\n" >> /opt/docker/etc/php/php.webdevops.ini
 RUN echo "session.save_path = 'tcp://10.10.10.166:6379'\n" >> /opt/docker/etc/php/php.webdevops.ini
