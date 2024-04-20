@@ -48,7 +48,7 @@ ADD ./pushdeer/pushdeer/docker/web/supervisord-clip.conf /opt/docker/etc/supervi
 RUN sed -i 's/data/home/g' /opt/docker/etc/supervisor.d/push-ios.conf
 RUN sed -i 's/data/home/g' /opt/docker/etc/supervisor.d/push-clip.conf
 
-RUN sed -i 's/dev/log/home/log/g' /etc/syslog-ng/syslog-ng.conf
+RUN sed -i 's@dev/log@home/log@g' /etc/syslog-ng/syslog-ng.conf
 
 ADD ./pushdeer/pushdeer/docker/web/larave-cron /etc/cron.d
 RUN chmod +x /etc/cron.d/larave-cron 
