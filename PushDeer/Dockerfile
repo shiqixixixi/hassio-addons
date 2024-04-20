@@ -45,8 +45,8 @@ RUN chmod +x /home/gorush
 ADD ./pushdeer/pushdeer/docker/web/supervisord-ios.conf /opt/docker/etc/supervisor.d/push-ios.conf
 ADD ./pushdeer/pushdeer/docker/web/supervisord-clip.conf /opt/docker/etc/supervisor.d/push-clip.conf
 
-RUN sed -i 's/data/gorush/home/gorush/g' /opt/docker/etc/supervisor.d/push-ios.conf
-RUN sed -i 's/data/gorush/home/gorush/g' /opt/docker/etc/supervisor.d/push-clip.conf
+RUN sed -i 's//data/gorush//home/gorush/g' /opt/docker/etc/supervisor.d/push-ios.conf
+RUN sed -i 's//data/gorush//home/gorush/g' /opt/docker/etc/supervisor.d/push-clip.conf
 
 ADD ./pushdeer/pushdeer/docker/web/larave-cron /etc/cron.d
 RUN chmod +x /etc/cron.d/larave-cron 
