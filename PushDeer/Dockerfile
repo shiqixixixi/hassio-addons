@@ -5,6 +5,9 @@ FROM webdevops/php-apache:8.0
 COPY ./pushdeer/pushdeer/docker/web/vhost.conf /opt/docker/etc/httpd/vhost.conf
 # COPY ./docker/web/web.vhost.conf /opt/docker/etc/httpd/vhost.common.d/
 
+COPY ./pushdeer/pushdeer/docker/web/init.sh /opt/docker/provision/entrypoint.d/
+#CMD chmod +x /opt/docker/provision/entrypoint.d/init.sh
+
 WORKDIR /app
 COPY ./pushdeer/pushdeer /app
 #COPY ./app /app
@@ -22,8 +25,8 @@ ENV MQTT_API_KEY=9LKo3
 ENV MQTT_ON=false
 # 然后运行初始化脚本
 # https://dockerfile.readthedocs.io/en/latest/content/Customization/provisioning.html
-COPY ./pushdeer/pushdeer/docker/web/init.sh /opt/docker/provision/entrypoint.d/
-#CMD chmod +x /opt/docker/provision/entrypoint.d/init.sh
+
+
 RUN echo "session.save_handler = redis\n" >> /opt/docker/etc/php/php.webdevops.ini
 RUN echo "session.save_path = 'tcp://10.10.10.166:6379'\n" >> /opt/docker/etc/php/php.webdevops.ini
 RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdevops.ini
@@ -34,9 +37,9 @@ RUN sed -i 's/redis:6379/10.10.10.166:6379/g' /app/push/clip.yml
 RUN echo "if [ ! -S /home/log ]; then rm -f /home/log;" > /opt/docker/bin/service.d/syslog-ng.d/10-init.sh
 # ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
 
-#RUN mkdir -p /data
-COPY ./pushdeer/pushdeer/docker/web/gorush /home
-RUN chmod +x /home/gorush 
+RUN mkdir /data
+COPY ./pushdeer/pushdeer/docker/web/gorush /data
+RUN chmod +x /data/gorush 
 
 #RUN mkdir /opt/docker/etc/supervisor.d
 ADD ./pushdeer/pushdeer/docker/web/supervisord-ios.conf /opt/docker/etc/supervisor.d/push-ios.conf
