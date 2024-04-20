@@ -1,6 +1,6 @@
 {
     "name": "PushDeer",
-    "version": "1.4",
+    "version": "1.5",
     "slug": "pushdeer_server",
     "description": "PushDeer",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
@@ -8,6 +8,12 @@
     "boot": "auto",
     "url": "https://github.com/easychen/pushdeer",
     "host_network": false,
+    "options":{
+        "MQTT_API_KEY": null
+    },
+    "schema":{
+        "MQTT_API_KEY": "str"
+    },
     "ports": {
         "80/tcp": 8800
     },
