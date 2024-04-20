@@ -8,12 +8,6 @@
     "boot": "auto",
     "url": "https://github.com/easychen/pushdeer",
     "host_network": false,
-    "options":{
-        "MQTT_API_KEY": null
-    },
-    "schema":{
-        "MQTT_API_KEY": "str"
-    },
     "ports": {
         "80/tcp": 8800
     },
@@ -23,10 +17,10 @@
     "panel_icon": "mdi:earth",
     "panel_title": "PushDeer",
     "panel_admin": false,
-    "hassio_api": false,
+    "hassio_api": true,
     "hassio_role": "manager",
     "webui": "http://[HOST]:[PORT:8800]",
-    "homeassistant_api": false,
+    "homeassistant_api": true,
     "ingress": true,
     "auth_api": false,
     "docker_api": false,
