@@ -34,7 +34,7 @@ RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdev
 RUN sed -i 's/redis:6379/10.10.10.166:6379/g' /app/push/ios.yml
 RUN sed -i 's/redis:6379/10.10.10.166:6379/g' /app/push/clip.yml
 
-RUN echo "if [ ! -S /home/log ]; then rm -f /home/log;" > /opt/docker/bin/service.d/syslog-ng.d/10-init.sh
+RUN echo "if [ ! -S /data/log ]; then rm -f /data/log;" > /opt/docker/bin/service.d/syslog-ng.d/10-init.sh
 # ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
 
 RUN mkdir /data
