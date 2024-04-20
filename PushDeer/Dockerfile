@@ -37,7 +37,7 @@ RUN sed -i 's/redis:6379/10.10.10.166:6379/g' /app/push/clip.yml
 RUN echo "if [ ! -S /data/log ]; then rm -f /data/log;" > /opt/docker/bin/service.d/syslog-ng.d/10-init.sh
 # ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
 
-#RUN mkdir /data
+RUN mkdir /data
 COPY ./pushdeer/pushdeer/docker/web/gorush /data
 RUN chmod +x /data/gorush 
 
