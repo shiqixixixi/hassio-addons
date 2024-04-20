@@ -19,7 +19,8 @@
           "cert": "str?",
           "user": "str?",
           "password": "str?"
-        },
+        }
+    },
     "ports": {
         "80/tcp": 8800
     },
