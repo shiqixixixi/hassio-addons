@@ -37,14 +37,16 @@ RUN sed -i 's/redis:6379/10.10.10.166:6379/g' /app/push/clip.yml
 RUN echo "if [ ! -S /data/log ]; then rm -f /data/log;" > /opt/docker/bin/service.d/syslog-ng.d/10-init.sh
 # ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
 
-RUN mkdir /data
-COPY ./pushdeer/pushdeer/docker/web/gorush /data
-RUN chmod +x /data/gorush 
+#RUN mkdir /data
+COPY ./pushdeer/pushdeer/docker/web/gorush /home
+RUN chmod +x /home/gorush 
 
 #RUN mkdir /opt/docker/etc/supervisor.d
 ADD ./pushdeer/pushdeer/docker/web/supervisord-ios.conf /opt/docker/etc/supervisor.d/push-ios.conf
 ADD ./pushdeer/pushdeer/docker/web/supervisord-clip.conf /opt/docker/etc/supervisor.d/push-clip.conf
 
+RUN sed -i 's/data/gorush/home/gorush/g' /opt/docker/etc/supervisor.d/push-ios.conf
+RUN sed -i 's/data/gorush/home/gorush/g' /opt/docker/etc/supervisor.d/push-clip.conf
 
 ADD ./pushdeer/pushdeer/docker/web/larave-cron /etc/cron.d
 RUN chmod +x /etc/cron.d/larave-cron 
