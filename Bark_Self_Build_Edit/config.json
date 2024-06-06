@@ -9,10 +9,10 @@
     "url": "https://github.com/adams549659584/bark-server",
     "host_network": false,
     "ports": {
-        "8082/tcp": 8082
+        "8079/tcp": 8079
     },
     "ports_description": {
-        "8082/tcp": "Web interface"
+        "8079/tcp": "Web interface"
     },
     "map": [
         "config:rw",
@@ -37,13 +37,13 @@
     "panel_title": "Bark Self Build Edit",
     "hassio_api": true,
     "hassio_role": "manager",
-    "webui": "http://[HOST]:[PORT:8082]",
+    "webui": "http://[HOST]:[PORT:8079]",
     "homeassistant_api": false,
     "ingress": true,
     "auth_api": false,
     "docker_api": false,
     "host_dbus": false,
     "apparmor": true,
-    "ingress_port": 8082,
+    "ingress_port": 8079,
     "ingress_entry": ""
 }
