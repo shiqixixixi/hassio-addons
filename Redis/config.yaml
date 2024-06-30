@@ -19,11 +19,11 @@ schema:
   ALLOW_EMPTY_PASSWORD: bool
   password: str
 ports:
-  "6379/tcp": 6379
+  "6379/tcp": 6378
 ports_description:
   "6379/tcp": Web interface
 panel_icon: mdi:earth
 panel_title: Redis
 homeassistant_api: true
-ingress_port: 6379
-apparmor: true
+ingress_port: 6378
+
