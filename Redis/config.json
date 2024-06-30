@@ -1,6 +1,6 @@
 {
     "name": "Redis",
-    "version": "6.0.16",
+    "version": "7.0.15",
     "slug": "redis",
     "description": "redis",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
