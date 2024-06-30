@@ -1,9 +1,0 @@
-{
-	"build_from": {
-	  "aarch64": "bitnami/redis",
-	  "amd64": "bitnami/redis",
-	  "armhf": "bitnami/redis",
-	  "armv7": "bitnami/redis",
-	  "i386": "bitnami/redis"
-	}
-  }
