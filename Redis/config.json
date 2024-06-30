@@ -8,6 +8,8 @@
     "boot": "auto",
     "url": "https://github.com/shiqixixixi/hassio-addons",
     "host_network": true,
+    "options": {"password": "123456"},
+    "schema": {"password": "str"},
     "ports": {
         "6379/tcp": 6379
     },
