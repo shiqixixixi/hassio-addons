@@ -14,7 +14,7 @@ url: https://github.com/shiqixixixi/hassio-addons
 host_network: true
 options:
   ALLOW_EMPTY_PASSWORD: true
-  REDIS_PASSWORD: "123456"
+  REDIS_PASSWORD: 123456
 schema:
   ALLOW_EMPTY_PASSWORD: bool
   REDIS_PASSWORD: str
