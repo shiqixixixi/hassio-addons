@@ -1,14 +1,10 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
-RUN rm -rf /opt/bitnami/scripts/*
 
-RUN cp -r /bitnami/* /opt/bitnami/scripts/
+RUN cp -r /bitnami/scripts/redis-env.sh /opt/bitnami/scripts/redis-env.sh
 
 WORKDIR /opt/bitnami/scripts/redis
-
-RUN ls
-RUN pwd
 
 CMD [ "/opt/bitnami/scripts/redis/run.sh" ]
 ENTRYPOINT [ "/opt/bitnami/scripts/redis/entrypoint.sh" ]
