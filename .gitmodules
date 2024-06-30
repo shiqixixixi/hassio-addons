@@ -1,3 +1,6 @@
 [submodule "PushDeer/pushdeer/pushdeer"]
 	path = PushDeer/pushdeer/pushdeer
 	url = https://github.com/easychen/pushdeer.git
+[submodule "Redis/Redis"]
+	path = Redis/Redis
+	url = https://github.com/redis/redis.git
