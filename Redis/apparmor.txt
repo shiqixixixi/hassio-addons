@@ -29,7 +29,7 @@ profile example flags=(attach_disconnected,mediate_deleted) {
   /data/** rw,
   /opt/** rw,
   /var/** rw,
-
+  /lib/** rw,
   # Start new profile for service
   /usr/bin/my_program cx -> my_program,
 
@@ -43,7 +43,7 @@ profile example flags=(attach_disconnected,mediate_deleted) {
     /data/** rw,
     /opt/** rw,
     /var/** rw,
-
+    /lib/** rw,
     # Access to mapped volumes specified in config.json
     /share/** rw,
 
