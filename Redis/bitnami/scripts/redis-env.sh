@@ -124,7 +124,7 @@ if [ ! $EMPTY_PASSWORD ] && [ -f $CONFIG_PATH ];then
     EMPTY_PASSWORD=$(jq --raw-output '.ALLOW_EMPTY_PASSWORD' $CONFIG_PATH)
 fi
 
-if [ ! $EMPTY_PASSWORD ] || [ -f $CONFIG_PATH ];then
+if [ ! $EMPTY_PASSWORD ] || [ true == $EMPTY_PASSWORD ];then
     echo "error! ALLOW_EMPTY_PASSWORD is null"
     exit 1
 fi
