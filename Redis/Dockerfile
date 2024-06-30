@@ -10,7 +10,8 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /Redis
 
-RUN make -j$(nproc)
+RUN make && \
+    make install
 
 RUN cp src/redis-server /usr/local/bin/redis-server && \
     cp src/redis-cli /usr/local/bin/redis-cli
