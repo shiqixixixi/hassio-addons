@@ -6,8 +6,8 @@ COPY ./bitnami/scripts/redis-env.sh /opt/bitnami/scripts/redis-env.sh
 WORKDIR /opt/bitnami/scripts/redis
 
 RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list \
-    && apt-get --allow-releaseinfo-change update \
-    && apt-get install -y --no-install-recommends jq chromium chromium-driver \
+    && apt-get update \
+    && apt-get install -y jq \
     && rm -rf /var/lib/apt/lists/*
 
 CMD [ "/opt/bitnami/scripts/redis/run.sh" ]
