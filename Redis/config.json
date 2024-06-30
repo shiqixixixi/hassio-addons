@@ -4,7 +4,7 @@
     "slug": "redis",
     "description": "redis",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
-    "image": "redis/redis",
+    "image": "redis/redis-stack-server",
     "startup": "application",
     "boot": "auto",
     "url": "https://github.com/shiqixixixi/hassio-addons",
