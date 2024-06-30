@@ -5,7 +5,7 @@ COPY ./bitnami/scripts/redis-env.sh /opt/bitnami/scripts/redis-env.sh
 
 WORKDIR /opt/bitnami/scripts/redis
 
-RUN apt-get install -y jq
+#RUN apt-get install -y jq
 
 CMD [ "/opt/bitnami/scripts/redis/run.sh" ]
 ENTRYPOINT [ "/opt/bitnami/scripts/redis/entrypoint.sh" ]
