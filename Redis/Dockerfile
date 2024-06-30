@@ -1,9 +1,9 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
-RUN rm -rf /opt/bitnami/scripts
+RUN rm -rf /opt/bitnami/scripts/*
 
-COPY ./bitnami/* /opt/bitnami/
+RUN cp -r ./bitnami/* /opt/bitnami/
 
 WORKDIR /opt/bitnami/scripts/redis
 
