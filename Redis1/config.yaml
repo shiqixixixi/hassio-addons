@@ -1,0 +1,29 @@
+name: Redis1
+version: "7.0.15"
+slug: redis1
+description: redis1
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+startup: application
+boot: auto
+url: https://github.com/shiqixixixi/hassio-addons
+host_network: true
+options:
+  ALLOW_EMPTY_PASSWORD: true
+  password: "123456"
+schema:
+  ALLOW_EMPTY_PASSWORD: bool
+  password: str
+ports:
+  "6379/tcp": 6379
+ports_description:
+  "6379/tcp": Web interface
+panel_icon: mdi:earth
+panel_title: Redis1
+homeassistant_api: true
+ingress_port: 6379
+apparmor: true
