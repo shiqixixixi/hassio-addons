@@ -24,7 +24,6 @@ ports_description:
   "6379/tcp": Web interface
 panel_icon: mdi:earth
 panel_title: Redis
-hassio_role: manager
 homeassistant_api: true
 ingress_port: 6379
-apparmor: true
+
