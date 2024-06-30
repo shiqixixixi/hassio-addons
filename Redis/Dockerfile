@@ -3,7 +3,7 @@ FROM $BUILD_FROM
 
 COPY ./opt/bitnami/* /opt/bitnami/
 
-WORKDIR /opt/bitnami/scripts
+WORKDIR /opt/bitnami/scripts/redis
 
 CMD [ "run.sh" ]
 ENTRYPOINT [ "entrypoint.sh" ]
