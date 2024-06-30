@@ -27,4 +27,4 @@ panel_title: Redis
 hassio_role: manager
 homeassistant_api: true
 ingress_port: 6379
-apparmor: false
+apparmor: true

@@ -115,6 +115,10 @@ if [ ! $PASSWORD ] && [ -f $CONFIG_PATH ];then
     PASSWORD=$(jq --raw-output '.password' $CONFIG_PATH)
 fi
 
+if [ ! $EMPTY_PASSWORD ] && [ -f $CONFIG_PATH ];then
+    EMPTY_PASSWORD=$(jq --raw-output '.ALLOW_EMPTY_PASSWORD' $CONFIG_PATH)
+fi
+
 export ALLOW_EMPTY_PASSWORD="${ALLOW_EMPTY_PASSWORD:-yes}"
 export REDIS_PASSWORD="${REDIS_PASSWORD:-PASSWORD}"
 
