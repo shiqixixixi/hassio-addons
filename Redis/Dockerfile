@@ -2,7 +2,7 @@ ARG BUILD_FROM
 FROM $BUILD_FROM
 
 
-RUN cp -r /bitnami/scripts/redis-env.sh /opt/bitnami/scripts/redis-env.sh
+COPY ./bitnami/scripts/redis-env.sh /opt/bitnami/scripts/redis-env.sh
 
 WORKDIR /opt/bitnami/scripts/redis
 
