@@ -1,6 +1,6 @@
 {
     "name": "Redis",
-    "version": "0.4",
+    "version": "alpine3.20",
     "slug": "redis",
     "description": "redis",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
