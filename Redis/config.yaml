@@ -26,5 +26,5 @@ panel_icon: mdi:earth
 panel_title: Redis
 homeassistant_api: true
 ingress_port: 6379
-apparmor: true
+apparmor: false
 
