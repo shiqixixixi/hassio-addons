@@ -1,10 +1,10 @@
 {
     "name": "Redis",
-    "version": "0.2",
+    "version": "0.3",
     "slug": "redis",
     "description": "redis",
     "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
-    "image": "docker.ckyl.me/redis/redis",
+    "image": "redis/redis",
     "startup": "application",
     "boot": "auto",
     "url": "https://github.com/shiqixixixi/hassio-addons",
