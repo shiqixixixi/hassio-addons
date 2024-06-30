@@ -1,7 +1,7 @@
-name: Redis1
+name: Redis_tmp
 version: "7.0.15"
-slug: redis1
-description: redis1
+slug: redis_tmp
+description: redis_tmp
 arch:
   - armhf
   - armv7
@@ -23,7 +23,7 @@ ports:
 ports_description:
   "6379/tcp": Web interface
 panel_icon: mdi:earth
-panel_title: Redis1
+panel_title: Redis_tmp
 homeassistant_api: true
 ingress_port: 6379
 
