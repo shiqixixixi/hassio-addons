@@ -111,26 +111,26 @@ export REDIS_EXTRA_FLAGS="${REDIS_EXTRA_FLAGS:-}"
 #export REDIS_PASSWORD="${REDIS_PASSWORD:-}"
 CONFIG_PATH=/data/options.json
 
-if [ ! $PASSWORD ] && [ -f $CONFIG_PATH ];then
-    PASSWORD=$(jq --raw-output '.password' $CONFIG_PATH)
-fi
+#if [ ! $PASSWORD ] && [ -f $CONFIG_PATH ];then
+#    PASSWORD=$(jq --raw-output '.password' $CONFIG_PATH)
+#fi
 
-if [ ! $PASSWORD ] || [ null == $PASSWORD ]; then
-    echo "error! password is null"
-    exit 1
-fi
+#if [ ! $PASSWORD ] || [ null == $PASSWORD ]; then
+#    echo "error! password is null"
+#    exit 1
+#fi
 
-if [ ! $EMPTY_PASSWORD ] && [ -f $CONFIG_PATH ];then
-    EMPTY_PASSWORD=$(jq --raw-output '.ALLOW_EMPTY_PASSWORD' $CONFIG_PATH)
-fi
+#if [ ! $EMPTY_PASSWORD ] && [ -f $CONFIG_PATH ];then
+#    EMPTY_PASSWORD=$(jq --raw-output '.ALLOW_EMPTY_PASSWORD' $CONFIG_PATH)
+#fi
 
-if [ ! $EMPTY_PASSWORD ] || [ true == $EMPTY_PASSWORD ];then
-    echo "error! ALLOW_EMPTY_PASSWORD is null"
-    exit 1
-fi
+#if [ ! $EMPTY_PASSWORD ] || [ true == $EMPTY_PASSWORD ];then
+#    echo "error! ALLOW_EMPTY_PASSWORD is null"
+#    exit 1
+#fi
 
 export ALLOW_EMPTY_PASSWORD="${ALLOW_EMPTY_PASSWORD:-yes}"
-export REDIS_PASSWORD="${REDIS_PASSWORD:-PASSWORD}"
+export REDIS_PASSWORD="${REDIS_PASSWORD:-}"
 
 export REDIS_MASTER_PASSWORD="${REDIS_MASTER_PASSWORD:-}"
 export REDIS_ACLFILE="${REDIS_ACLFILE:-}"
