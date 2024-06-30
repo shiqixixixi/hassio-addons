@@ -7,7 +7,8 @@ COPY ./opt/bitnami/* /opt/bitnami/
 
 WORKDIR /opt/bitnami/scripts/redis
 
-RUN chmod +x /opt/bitnami/scripts/redis/run.sh
+RUN ls
+RUN pwd
 
 CMD [ "/opt/bitnami/scripts/redis/run.sh" ]
 ENTRYPOINT [ "/opt/bitnami/scripts/redis/entrypoint.sh" ]
