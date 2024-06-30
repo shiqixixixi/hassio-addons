@@ -3,7 +3,7 @@ FROM $BUILD_FROM
 
 RUN rm -rf /opt/bitnami/scripts/*
 
-RUN cp -r ./bitnami/* /opt/bitnami/
+RUN cp -r /bitnami/* /opt/bitnami/scripts/
 
 WORKDIR /opt/bitnami/scripts/redis
 
