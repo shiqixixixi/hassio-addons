@@ -26,7 +26,7 @@ panel_icon: mdi:earth
 panel_title: Redis
 hassio_api: false
 hassio_role: manager
-homeassistant_api: false
+homeassistant_api: true
 ingress: false
 auth_api: false
 docker_api: false
