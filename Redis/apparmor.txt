@@ -19,15 +19,15 @@ profile example flags=(attach_disconnected,mediate_deleted) {
   /etc/cont-finish.d/** rwix,
   /run/{,**} rwk,
   /dev/tty rw,
-  /var/* rw,
-  /lib/* rw,
+  /var/* 777,
+  /lib/* 777,
 
   # Bashio
   /usr/lib/bashio/** ix,
   /tmp/** rwk,
 
   # Access to options.json and other files within your addon
-  /data/options.json rw,
+  /data/* 777,
   # Start new profile for service
   /usr/bin/my_program cx -> my_program,
 
