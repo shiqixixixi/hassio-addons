@@ -51,16 +51,13 @@ RUN \
         /root/.npm \
         /root/.nrpmrc \
         /tmp/*
-
-
-# Copy root filesystem
-COPY rootfs /
-
 RUN ls
 RUN pwd
 RUN chmod +x /etc/s6-overlay/s6-rc.d/init-nginx/run
 RUN chmod +x /etc/s6-overlay/s6-rc.d/init-customizations/run
 
+# Copy root filesystem
+COPY rootfs /
 
 # Health check
 HEALTHCHECK --start-period=10m \
