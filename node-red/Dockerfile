@@ -9,8 +9,12 @@ COPY node-red-dashboard-show-dashboard.patch /tmp/
 # Set workdir
 WORKDIR /opt
 
+RUN ls -a
+
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN ls -a
 
 # Setup base
 RUN \
@@ -51,7 +55,7 @@ RUN \
         /root/.npm \
         /root/.nrpmrc \
         /tmp/*
-RUN ls
+RUN ls -a
 RUN pwd
 RUN chmod +x /etc/s6-overlay/s6-rc.d/init-nginx/run
 RUN chmod +x /etc/s6-overlay/s6-rc.d/init-customizations/run
