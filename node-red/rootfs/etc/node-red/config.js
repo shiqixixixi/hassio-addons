@@ -22,8 +22,9 @@ config.httpNodeRoot = "/endpoint";
 
 // Disable authentication, let HA handle that
 //config.adminAuth = null;
-// Secure HTTP node
-if (options.http_admin.username) {
+// Secure admin node
+if(config.adminAuth) {
+if (options.http_admin_username) {
   config.adminAuth = {
     type: "credentials",
     users: [{
@@ -33,7 +34,7 @@ if (options.http_admin.username) {
     }]
   };
 }
-
+}
 // Disable SSL, since the add-on handles that
 config.https = null;
 
