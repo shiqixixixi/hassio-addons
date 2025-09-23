@@ -61,7 +61,7 @@ RUN ls /etc/
 RUN chmod +x /etc/s6-overlay/s6-rc.d/init-nginx/run
 RUN chmod +x /etc/s6-overlay/s6-rc.d/init-customizations/run
 
-RUN chmod +x rootfs
+RUN chmod +x /rootfs
 
 # Health check
 HEALTHCHECK --start-period=10m \
