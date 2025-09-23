@@ -27,8 +27,8 @@ if (options.http_admin.username) {
   config.adminAuth = {
     type: "credentials",
     users: [{
-      username: options.http_admin.username,
-      password: bcrypt.hashSync(options.http_admin.password),
+      username: options.http_admin_username,
+      password: bcrypt.hashSync(options.http_admin_password),
       permissions: "*",
     }]
   };
