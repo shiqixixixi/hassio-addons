@@ -56,6 +56,8 @@ RUN \
 # Copy root filesystem
 COPY rootfs /
 
+RUN ls
+RUN pwd
 RUN chmod +x /etc/s6-overlay/s6-rc.d/init-nginx/run
 RUN chmod +x /etc/s6-overlay/s6-rc.d/init-customizations/run
 
