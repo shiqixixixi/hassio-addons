@@ -51,7 +51,8 @@ RUN \
         /root/.npm \
         /root/.nrpmrc \
         /tmp/*
-
+RUN pwd
+RUN ls
 RUN chmod +x ./rootfs/etc/s6-overlay/s6-rc.d/init-nginx/run
 RUN chmod +x ./rootfs/etc/s6-overlay/s6-rc.d/init-customizations/run
 
