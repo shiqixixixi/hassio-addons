@@ -152,6 +152,8 @@ module.exports = {
   //    context.global.os
 
   functionGlobalContext: {
+    axios: require('axios'),
+    os: require('os'),
     // os:require('os'),
     // jfive:require("johnny-five"),
     // j5board:require("johnny-five").Board({repl:false})
