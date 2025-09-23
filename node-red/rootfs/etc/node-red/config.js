@@ -22,6 +22,13 @@ config.httpNodeRoot = "/endpoint";
 
 // Disable authentication, let HA handle that
 //config.adminAuth = null;
+// Secure HTTP node
+if (options.http_admin.username) {
+  config.adminAuth = {
+    user: options.http_admin.username,
+    pass: bcrypt.hashSync(options.http_admin.password),
+  };
+}
 
 // Disable SSL, since the add-on handles that
 config.https = null;
