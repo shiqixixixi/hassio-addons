@@ -25,8 +25,12 @@ config.httpNodeRoot = "/endpoint";
 // Secure HTTP node
 if (options.http_admin.username) {
   config.adminAuth = {
-    user: options.http_admin.username,
-    pass: bcrypt.hashSync(options.http_admin.password),
+    type: "credentials",
+    users: [{
+      username: options.http_admin.username,
+      password: bcrypt.hashSync(options.http_admin.password),
+      permissions: "*",
+    }]
   };
 }
 

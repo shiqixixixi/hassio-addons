@@ -40,6 +40,7 @@
  * If you like to change those settings, some are available via the add-on
  * settings/option in the Supervisor panel in Home Assistant.
  */
+process.env.TZ = "Asia/Shanghai"
 
 module.exports = {
   // Retry time in milliseconds for MQTT connections
@@ -83,7 +84,7 @@ module.exports = {
   // When httpAdminRoot is used to move the UI to a different root path, the
   // following property can be used to identify a directory of static content
   // that should be served at http://localhost:1880/.
-  //httpStatic: '/home/nol/node-red-static/',
+  httpStatic: '/config/node-red-static/',
 
   // The maximum size of HTTP request that will be accepted by the runtime api.
   // Default: 5mb
@@ -189,5 +190,22 @@ module.exports = {
       // To enable the Projects feature, set this value to true
       enabled: true,
     },
+  },
+  contextStorage: {
+    // 可选：保留 default 存储（显式声明内存存储，便于代码可读性，非必需）
+    //default: {
+    //  module: 'memory' // 内存存储，重启丢失（与默认行为一致，可删除）
+    //},
+    // 核心：文件系统存储（永久存储全局变量）
+    store: {
+      module: 'localfilesystem', // 内置文件存储模块，无需额外安装
+      config: {
+        dir: '/config/node-red-context', // 关键：在 /config 下创建独立子目录，避免文件混乱
+        //cache: true, // 启用内存缓存（减少 IO 频率，优化性能）
+        //flushInterval: 1000, // 缓存 1 秒后批量写入文件（平衡实时性和性能）
+        // 可选：设置单个文件最大大小（默认 10MB，超过会自动分割）
+        //maxFileSize: 10485760 
+      }
+    }
   },
 };
