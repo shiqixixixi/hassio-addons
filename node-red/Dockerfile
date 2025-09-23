@@ -6,17 +6,11 @@ FROM ${BUILD_FROM}
 COPY package.json /opt/
 COPY node-red-dashboard-show-dashboard.patch /tmp/
 
-RUN ls
-
 # Set workdir
 WORKDIR /opt
 
-RUN ls
-
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-RUN ls
 
 # Setup base
 RUN \
@@ -57,10 +51,9 @@ RUN \
         /root/.npm \
         /root/.nrpmrc \
         /tmp/*
-RUN ls
-RUN pwd
-RUN chmod +x /etc/s6-overlay/s6-rc.d/init-nginx/run
-RUN chmod +x /etc/s6-overlay/s6-rc.d/init-customizations/run
+
+RUN chmod +x rootfs/etc/s6-overlay/s6-rc.d/init-nginx/run
+RUN chmod +x rootfs/etc/s6-overlay/s6-rc.d/init-customizations/run
 
 # Copy root filesystem
 COPY rootfs /
