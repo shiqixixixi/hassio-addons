@@ -29,6 +29,7 @@
     "node-red-node-feedparser": "0.3.0",
     "node-red-node-ping": "0.3.3",
     "node-red-node-random": "0.4.1",
+    "node-red-node-serialport": "2.0.3",
     "node-red-node-smooth": "0.1.2",
     "node-red-node-suncalc": "1.2.0",
     "@node-red-contrib-themes/theme-collection": "4.1.0",
