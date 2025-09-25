@@ -124,7 +124,7 @@ module.exports = {
   //    //req.skipRawBodyParser = true;
   //    next();
   //},
-
+  adminAuth: null,
   // The following property can be used to verify websocket connection attempts.
   // This allows, for example, the HTTP request headers to be checked to ensure
   // they include valid authentication information.
