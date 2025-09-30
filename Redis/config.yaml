@@ -1,27 +1,25 @@
 name: Redis
-version: "7.2.4"  # Redis 版本，与 Dockerfile 保持一致
+version: "7.2.4"
 slug: redis_server
 description: A Redis server for Home Assistant, providing in-memory data storage.
-url: "https://github.com/shiqixixixi/hassio-addons"  # 替换为你的仓库地址
+url: "https://github.com/shiqixixixi/hassio-addons"
 arch:
   - amd64
   - armv7
-  - aarch64  # 支持的架构（根据 Redis 镜像调整）
+  - aarch64
 startup: application
-boot: auto  # 开机自动启动
+boot: auto
 ports:
-  6379/tcp: 6379  # 端口映射（宿主机:容器，默认 Redis 端口）
+  6379/tcp: 6379
 ports_description:
   6379/tcp: Redis server port
 options:
-  # 默认配置项（用户可在 HA 界面修改）
-  max_memory: "128mb"  # 最大内存限制
-  require_pass: ""     # 密码（为空则不启用认证）
-  appendonly: "no"     # 是否开启 AOF 持久化
+  max_memory: "128mb"
+  require_pass: ""
+  appendonly: false  # 改为布尔值（true/false），更符合 HA 规范
 schema:
-  # 配置项校验规则（确保用户输入符合格式）
   max_memory: str
   require_pass: str
-  appendonly: "yes|no"
-environment:
-  - TZ=${TZ}  # 继承 Home Assistant 的时区
+  appendonly: bool  # 修正：使用 bool 类型校验（替换 yes|no）
+environment:  # 修正：改为字典格式
+  TZ: "${TZ}"  # 键值对形式，继承 HA 时区
