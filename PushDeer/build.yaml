@@ -1,0 +1,6 @@
+build_from:
+  armhf: ccr.ccs.tencentyun.com/ftqq/pushdeercore
+  armv7: ccr.ccs.tencentyun.com/ftqq/pushdeercore
+  aarch64: ccr.ccs.tencentyun.com/ftqq/pushdeercore
+  amd64: ccr.ccs.tencentyun.com/ftqq/pushdeercore
+  i386: ccr.ccs.tencentyun.com/ftqq/pushdeercore

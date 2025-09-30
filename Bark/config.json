@@ -1,0 +1,49 @@
+{
+    "name": "Bark",
+    "version": "2.1.5",
+    "slug": "bark_server",
+    "description": "Bark",
+    "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+    "startup": "application",
+    "boot": "auto",
+    "url": "https://github.com/Finb/bark-server",
+    "host_network": false,
+    "ports": {
+        "8080/tcp": 8080
+    },
+    "ports_description": {
+        "8080/tcp": "Web interface"
+    },
+    "map": [
+        "config:rw",
+        "share",
+        "ssl"
+    ],
+    "options": {
+        "configFolder": "Bark",
+        "ssl": true,
+        "useExternalUrl": true,
+        "certfile": "fullchain.pem",
+        "keyfile": "privkey.pem"
+    },
+    "schema": {
+        "configFolder": "str",
+        "ssl": "bool",
+        "useExternalUrl": "bool",
+        "certfile": "str",
+        "keyfile": "str"
+    },
+    "panel_icon": "mdi:earth",
+    "panel_title": "Bark",
+    "hassio_api": true,
+    "hassio_role": "manager",
+    "webui": "http://[HOST]:[PORT:8080]",
+    "homeassistant_api": false,
+    "ingress": true,
+    "auth_api": false,
+    "docker_api": false,
+    "host_dbus": false,
+    "apparmor": true,
+    "ingress_port": 8080,
+    "ingress_entry": ""
+}
