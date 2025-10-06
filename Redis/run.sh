@@ -1,42 +1,49 @@
 #!/usr/bin/env bash
 set -e
 
-# Redis 配置文件路径
+# 1. 适配HassOS环境变量：从HassOS加载项配置中读取参数（支持界面修改）
+# 若未设置，使用默认值
+MAX_MEMORY=${MAX_MEMORY:-"128mb"}
+APPENDONLY=${APPENDONLY:-"false"}
+REQUIRE_PASS=${REQUIRE_PASS:-""}
+
+# 2. Redis配置文件路径（必须在/data目录下，HassOS才允许写入）
 REDIS_CONF="/data/redis/redis.conf"
 
-# 关键修复：确保父目录存在并设置权限
-mkdir -p /data/redis  # 创建目录（-p 确保多级目录都能创建，且已存在时不报错）
-chmod 755 /data/redis  # 赋予读写执行权限（适配容器内用户）
-
-# 处理 appendonly 格式（true/false → yes/no）
+# 3. 处理appendonly格式（true/false → yes/no）
+APPENDONLY_FLAG="no"
 if [ "$APPENDONLY" = "true" ]; then
-  APPENDONLY="yes"
-else
-  APPENDONLY="no"
+  APPENDONLY_FLAG="yes"
 fi
 
-# 生成配置文件（此时目录已存在，可正常写入）
+# 4. 生成Redis配置（适配HassOS权限，避免路径错误）
 cat > "$REDIS_CONF" <<EOL
 daemonize no
-pidfile /var/run/redis.pid
+pidfile /var/run/redis/redis.pid  # 临时目录，HassOS允许写入
 port 6379
-bind 0.0.0.0
+bind 0.0.0.0  # 允许HassOS内部其他组件访问
 timeout 0
 tcp-keepalive 300
 
-dir /data/redis
+dir /data/redis  # 数据持久化到HassOS的/data目录，重启不丢失
 dbfilename dump.rdb
-appendonly ${APPENDONLY}
+appendonly ${APPENDONLY_FLAG}
 appendfilename "appendonly.aof"
 
 maxmemory ${MAX_MEMORY}
 maxmemory-policy allkeys-lru
 
+# 密码配置（支持HassOS界面设置）
 $(if [ -n "${REQUIRE_PASS}" ]; then echo "requirepass ${REQUIRE_PASS}"; fi)
+
+# HassOS兼容：关闭保护模式（允许内部组件访问）
+protected-mode no
 EOL
 
-echo "Redis configuration generated:"
+# 5. 打印配置（HassOS加载项日志中可查看，方便调试）
+echo "=== HassOS Redis Add-on Config ==="
 cat "$REDIS_CONF"
+echo "=================================="
 
-# 启动 Redis 服务
+# 6. 启动Redis（直接用HassOS分配的用户运行）
 exec redis-server "$REDIS_CONF"
