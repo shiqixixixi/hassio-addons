@@ -1,93 +1,80 @@
 #!/usr/bin/env bash
 set -e
 
-# 1. 打印原始环境变量（用于调试）
-echo "=== 容器原始环境变量 ==="
-env | grep -E "REDIS_|TZ"
+# 1. 定义加载项数据目录（HassOS 中固定路径）
+ADDON_DATA_DIR="/data"
+OPTIONS_FILE="$ADDON_DATA_DIR/options.json"
+
+# 2. 通过 Supervisor API 读取 options.json 内容（绕开文件权限）
+# 超时时间 10 秒，重试 3 次
+read_options_via_api() {
+  local retries=3
+  local delay=3
+  local response
+
+  for ((i=1; i<=retries; i++)); do
+    # Supervisor API 地址固定，通过 SUPERVISOR_TOKEN 认证
+    response=$(curl -s -w "%{http_code}" -H "Authorization: Bearer $SUPERVISOR_TOKEN" \
+      "http://supervisor/files/read?path=$OPTIONS_FILE")
+    
+    # 提取 HTTP 状态码（最后 3 位）和内容
+    http_code="${response: -3}"
+    content="${response%???}"
+
+    if [ "$http_code" = "200" ] && [ -n "$content" ]; then
+      echo "$content"
+      return 0
+    fi
+
+    echo "WARNING: API 读取失败（尝试 $i/$retries），状态码: $http_code"
+    sleep $delay
+  done
+
+  # 多次失败后返回默认配置
+  echo '{"max_memory":"128mb","require_pass":"","appendonly":false}'
+}
+
+# 3. 执行 API 读取并解析配置
+OPTIONS_JSON=$(read_options_via_api)
+MAX_MEMORY=$(echo "$OPTIONS_JSON" | jq -r '.max_memory // "128mb"')
+REQUIRE_PASS=$(echo "$OPTIONS_JSON" | jq -r '.require_pass // ""')
+APPENDONLY=$(echo "$OPTIONS_JSON" | jq -r '.appendonly // "false"')
+
+# 4. 打印配置验证
+echo "=== 从 API 读取到的配置 ==="
+echo "options.json 内容: $OPTIONS_JSON"
+echo "内存限制: $MAX_MEMORY"
+echo "AOF 持久化: $APPENDONLY"
+echo "密码: ${REQUIRE_PASS:-(无密码)}"
 echo "======================"
 
-# 2. 读取/data/options.json作为备用配置源（关键：绕过模板解析问题）
-# 即使权限受限，也用默认值兜底
-OPTIONS_JSON=$(cat /data/options.json 2>/dev/null || echo '{"max_memory":"128mb","require_pass":"","appendonly":false}')
-
-# 3. 从options.json提取实际值（覆盖环境变量中的模板语法）
-# 若环境变量是模板（如{{ max_memory }}），则用options.json的值替换
-MAX_MEMORY_FROM_JSON=$(echo "$OPTIONS_JSON" | jq -r '.max_memory')
-REQUIRE_PASS_FROM_JSON=$(echo "$OPTIONS_JSON" | jq -r '.require_pass')
-APPENDONLY_FROM_JSON=$(echo "$OPTIONS_JSON" | jq -r '.appendonly')
-
-# 4. 处理环境变量：若为模板语法，则用JSON中的值覆盖
-if [[ "$REDIS_MAX_MEMORY" == *"{{"* ]]; then
-  MAX_MEMORY="$MAX_MEMORY_FROM_JSON"
-else
-  MAX_MEMORY="${REDIS_MAX_MEMORY:-128mb}"
-fi
-
-if [[ "$REDIS_REQUIRE_PASS" == *"{{"* ]]; then
-  REQUIRE_PASS="$REQUIRE_PASS_FROM_JSON"
-else
-  REQUIRE_PASS="${REDIS_REQUIRE_PASS:-}"
-fi
-
-if [[ "$REDIS_APPENDONLY" == *"{{"* ]]; then
-  APPENDONLY="$APPENDONLY_FROM_JSON"
-else
-  APPENDONLY="${REDIS_APPENDONLY:-false}"
-fi
-
-TZ="${TZ:-UTC}"
-
-# 5. 打印最终生效的变量（验证是否替换成功）
-echo "=== 最终生效的环境变量 ==="
-echo "内存限制 (MAX_MEMORY): $MAX_MEMORY"
-echo "AOF持久化 (APPENDONLY): $APPENDONLY"
-echo "密码 (REQUIRE_PASS): ${REQUIRE_PASS:-(无密码)}"
-echo "时区 (TZ): $TZ"
-echo "======================"
-
-# 6. 处理数据目录
+# 5. 处理数据目录
 REDIS_DIR="/data/redis"
-if [ ! -d "$REDIS_DIR" ]; then
-  echo "使用备用目录 /opt/redis"
-  REDIS_DIR="/opt/redis"
-fi
+[ ! -d "$REDIS_DIR" ] && REDIS_DIR="/opt/redis"
 mkdir -p "$REDIS_DIR"
 
-# 7. 启动Redis并动态配置
+# 6. 启动 Redis 并应用配置
 redis-server /redis.conf --dir "$REDIS_DIR" &
 sleep 2
 
 if redis-cli ping >/dev/null 2>&1; then
-  # 应用内存限制（确保是有效格式，如128mb）
+  # 验证内存格式并应用
   if [[ "$MAX_MEMORY" =~ ^[0-9]+(mb|gb)$ ]]; then
     redis-cli config set maxmemory "$MAX_MEMORY"
-    echo "已设置maxmemory: $MAX_MEMORY"
   else
-    echo "警告：无效的内存格式，使用默认128mb"
+    echo "警告：内存格式无效，使用默认 128mb"
     redis-cli config set maxmemory "128mb"
   fi
 
-  # 应用AOF设置
-  if [ "$APPENDONLY" = "true" ]; then
-    redis-cli config set appendonly yes
-    echo "已开启AOF持久化"
-  else
-    redis-cli config set appendonly no
-    echo "已关闭AOF持久化"
-  fi
+  # 应用 AOF
+  [ "$APPENDONLY" = "true" ] && redis-cli config set appendonly yes || redis-cli config set appendonly no
 
   # 应用密码
-  if [ -n "$REQUIRE_PASS" ]; then
-    redis-cli config set requirepass "$REQUIRE_PASS"
-    echo "已设置密码"
-  else
-    redis-cli config set requirepass ""
-    echo "未设置密码"
-  fi
+  [ -n "$REQUIRE_PASS" ] && redis-cli config set requirepass "$REQUIRE_PASS" || redis-cli config set requirepass ""
 
-  echo "配置已成功应用到Redis"
+  echo "配置已成功应用到 Redis"
 else
-  echo "ERROR: Redis启动失败，无法应用配置"
+  echo "ERROR: Redis 启动失败"
   exit 1
 fi
 
