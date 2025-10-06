@@ -11,20 +11,16 @@ RUN apk add --no-cache \
     curl \
     && rm -rf /var/cache/apk/*  # 清理缓存，减小镜像体积
 
-# 创建应用数据目录（确保权限正确）
-# HassOS默认用abc用户（UID=1000，GID=1000）运行加载项，需授权
-RUN mkdir -p \
-    /data/redis \              
-    /opt/redis \               
-    /var/run/redis \          
-    && chown -R 1000:1000 \   
-    /data/redis \
-    /opt/redis \
-    /var/run/redis \
-    && chmod -R 777 \         
-    /data/redis \
-    /opt/redis \
-    /var/run/redis
+# 安装Bashio（HA官方提供的加载项工具库，简化配置读取）
+RUN curl -J -L "https://github.com/hassio-addons/bashio/archive/v0.14.3.tar.gz" | tar -xzf - -C /tmp \
+    && mv /tmp/bashio-0.14.3/lib /usr/lib/bashio \
+    && rm -rf /tmp/bashio-0.14.3 \
+    && chmod -R 755 /usr/lib/bashio
+    
+# 创建Redis数据目录并授权（HassOS默认用abc用户，UID=1000）
+RUN mkdir -p /data/redis /opt/redis /var/run/redis \
+    && chown -R 1000:1000 /data/redis /opt/redis /var/run/redis \
+    && chmod -R 777 /data/redis /opt/redis /var/run/redis
 
 # 复制加载项文件到容器（路径需与本地目录一致）
 COPY run.sh /                  
