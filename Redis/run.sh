@@ -1,86 +1,70 @@
 #!/usr/bin/env bash
-set -e
+set -e  # 脚本出错时立即退出（避免后续逻辑异常）
 
-# 1. 打印原始环境变量（用于调试）
-echo "=== 容器原始环境变量 ==="
-env | grep -E "REDIS_|TZ"
-echo "======================"
+# -------------------------- 1. 配置初始化（核心：获取HA用户配置） --------------------------
+# 定义配置文件路径（HassOS自动生成，存储用户在HA界面的配置）
+OPTIONS_FILE="/data/options.json"
 
-# 1. 定义加载项数据目录（HassOS 中固定路径）
-ADDON_DATA_DIR="/data"
-OPTIONS_FILE="$ADDON_DATA_DIR/options.json"
-
-# 2. 通过 Supervisor API 读取 options.json 内容（绕开文件权限）
-# 超时时间 10 秒，重试 3 次
-read_options_via_api() {
-  local retries=3
-  local delay=3
-  local response
+# 读取options.json（容错：文件不存在或权限不足时用默认值）
+read_options() {
+  local retries=3  # 重试3次（应对Supervisor挂载延迟）
+  local delay=2
+  local options_json
 
   for ((i=1; i<=retries; i++)); do
-    # Supervisor API 地址固定，通过 SUPERVISOR_TOKEN 认证
-    response=$(curl -s -w "%{http_code}" -H "Authorization: Bearer $SUPERVISOR_TOKEN" \
-      "http://supervisor/files/read?path=$OPTIONS_FILE")
-    
-    # 提取 HTTP 状态码（最后 3 位）和内容
-    http_code="${response: -3}"
-    content="${response%???}"
-
-    if [ "$http_code" = "200" ] && [ -n "$content" ]; then
-      echo "$content"
-      return 0
+    if [ -f "$OPTIONS_FILE" ] && [ -r "$OPTIONS_FILE" ]; then
+      # 读取并验证JSON格式（用jq解析，避免格式错误）
+      options_json=$(cat "$OPTIONS_FILE" | jq . 2>/dev/null)
+      if [ -n "$options_json" ]; then
+        echo "$options_json"
+        return 0
+      fi
     fi
-
-    echo "WARNING: API 读取失败（尝试 $i/$retries），状态码: $http_code"
+    echo "WARNING: $OPTIONS_FILE not readable (attempt $i/$retries), waiting..."
     sleep $delay
   done
 
-  # 多次失败后返回默认配置
+  # 多次失败后返回默认配置（确保应用能启动）
   echo '{"max_memory":"128mb","require_pass":"","appendonly":false}'
 }
 
-# 3. 执行 API 读取并解析配置
-OPTIONS_JSON=$(read_options_via_api)
+# 解析配置（用jq提取参数，设置默认值兜底）
+OPTIONS_JSON=$(read_options)
 MAX_MEMORY=$(echo "$OPTIONS_JSON" | jq -r '.max_memory // "128mb"')
 REQUIRE_PASS=$(echo "$OPTIONS_JSON" | jq -r '.require_pass // ""')
 APPENDONLY=$(echo "$OPTIONS_JSON" | jq -r '.appendonly // "false"')
+TZ="${TZ:-UTC}"  # 继承环境变量的时区，默认UTC
 
-# 4. 打印配置验证
-echo "=== 从 API 读取到的配置 ==="
-echo "options.json 内容: $OPTIONS_JSON"
-echo "内存限制: $MAX_MEMORY"
-echo "AOF 持久化: $APPENDONLY"
-echo "密码: ${REQUIRE_PASS:-(无密码)}"
-echo "======================"
+# 调试：打印配置（HA日志中查看，确认参数正确）
+echo "=== HassOS Redis Add-on Config ==="
+echo "Options JSON: $OPTIONS_JSON"
+echo "Max Memory: $MAX_MEMORY"
+echo "AOF Persistence: $APPENDONLY"
+echo "Password: ${REQUIRE_PASS:-(No Password)}"
+echo "Timezone: $TZ"
+echo "==================================="
 
-# 5. 处理数据目录
+# -------------------------- 2. 应用准备（目录、权限、配置模板） --------------------------
+# 处理Redis数据目录（优先用/data/redis，失败则用/opt/redis）
 REDIS_DIR="/data/redis"
-[ ! -d "$REDIS_DIR" ] && REDIS_DIR="/opt/redis"
-mkdir -p "$REDIS_DIR"
-
-# 6. 启动 Redis 并应用配置
-redis-server /redis.conf --dir "$REDIS_DIR" &
-sleep 2
-
-if redis-cli ping >/dev/null 2>&1; then
-  # 验证内存格式并应用
-  if [[ "$MAX_MEMORY" =~ ^[0-9]+(mb|gb)$ ]]; then
-    redis-cli config set maxmemory "$MAX_MEMORY"
-  else
-    echo "警告：内存格式无效，使用默认 128mb"
-    redis-cli config set maxmemory "128mb"
-  fi
-
-  # 应用 AOF
-  [ "$APPENDONLY" = "true" ] && redis-cli config set appendonly yes || redis-cli config set appendonly no
-
-  # 应用密码
-  [ -n "$REQUIRE_PASS" ] && redis-cli config set requirepass "$REQUIRE_PASS" || redis-cli config set requirepass ""
-
-  echo "配置已成功应用到 Redis"
-else
-  echo "ERROR: Redis 启动失败"
-  exit 1
+if [ ! -d "$REDIS_DIR" ]; then
+  echo "WARNING: /data/redis not found, using backup directory /opt/redis"
+  REDIS_DIR="/opt/redis"
+  mkdir -p "$REDIS_DIR"  # 强制创建目录，避免启动失败
 fi
 
-wait
+# 生成Redis配置文件（动态替换模板，避免硬编码）
+# 若本地有redis.conf模板，可通过sed替换占位符（示例）
+# sed -i "s|__MAX_MEMORY__|$MAX_MEMORY|g" /redis.conf
+# sed -i "s|__APPENDONLY__|$([ "$APPENDONLY" = "true" ] && echo "yes" || echo "no")|g" /redis.conf
+
+# -------------------------- 3. 启动应用（必须保持前台运行） --------------------------
+# 启动Redis（动态指定参数，覆盖默认配置）
+# 关键：用exec启动，确保Redis进程成为容器PID=1的进程（HA能正确管理生命周期）
+exec redis-server \
+  --dir "$REDIS_DIR" \                  # 数据目录
+  --maxmemory "$MAX_MEMORY" \           # 内存限制
+  --appendonly "$([ "$APPENDONLY" = "true" ] && echo "yes" || echo "no")" \  # AOF持久化
+  --requirepass "$REQUIRE_PASS" \       # 密码
+  --bind 0.0.0.0 \                      # 允许所有IP访问（HA内部网络安全）
+  --protected-mode no                   # 关闭保护模式（HA内部使用，无需外部防护）
