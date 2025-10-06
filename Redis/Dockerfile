@@ -5,7 +5,7 @@ LABEL description="Redis server for Home Assistant (HassOS Add-on)"
 
 # 安装必要工具（根据应用需求）
 # bash：运行启动脚本；jq：解析JSON配置；curl：调用Supervisor API
-RUN apk add --no-cache bash jq \
+RUN apk add --no-cache bash jq curl\
     && rm -rf /var/cache/apk/*
 
 # 关键：使用 Bashio 官方安装脚本（自动处理路径和依赖，兼容性更高）
