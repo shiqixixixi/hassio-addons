@@ -16,10 +16,14 @@ ports_description:
 options:
   max_memory: "128mb"
   require_pass: ""
-  appendonly: false  # 改为布尔值（true/false），更符合 HA 规范
+  appendonly: false
 schema:
   max_memory: str
   require_pass: str
-  appendonly: bool  # 修正：使用 bool 类型校验（替换 yes|no）
-environment:  # 修正：改为字典格式
-  TZ: "${TZ}"  # 键值对形式，继承 HA 时区
+  appendonly: bool
+environment:
+  TZ: "${TZ}"
+  # 关键补充：将HA加载项配置映射为run.sh能识别的环境变量
+  MAX_MEMORY: "${max_memory}"
+  REQUIRE_PASS: "${require_pass}"
+  APPENDONLY: "${appendonly}"
