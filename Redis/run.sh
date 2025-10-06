@@ -8,31 +8,36 @@ CONFIG_PATH="/data/options.json"
 # 容错读取：处理文件不存在、权限不足、JSON格式错误三种情况
 # 若解析失败，自动使用默认配置（确保Redis能启动）
 read_options() {
-  local retries=3  # 重试3次（应对HassOS挂载目录延迟）
-  local delay=2    # 每次重试间隔2秒
+  local retries=3
+  local delay=2
   local options_json
+  local default_json='{"max_memory":"128mb","require_pass":"","appendonly":false,"TZ":"UTC"}'
 
   for ((i=1; i<=retries; i++)); do
-    # 检查文件是否存在且可读
     if [ -f "$CONFIG_PATH" ] && [ -r "$CONFIG_PATH" ]; then
-      # 用jq验证JSON格式，格式错误则返回空
-      options_json=$(cat "$CONFIG_PATH" | jq . 2>/dev/null)
-      # 若解析结果非空，返回有效JSON
+      # 关键：清洗无效字符（移除控制字符、非JSON字符，闭合引号）
+      cleaned_content=$(cat "$CONFIG_PATH" | \
+        tr -d '\r' | \                   # 移除Windows换行符
+        sed 's/[^\x20-\x7E]//g' | \      # 保留ASCII可见字符
+        sed 's/"[^"]*$/""/' | \          # 闭合未结束的引号
+        sed 's/,\([^ ]*\)$/\1/' )        # 移除末尾多余的逗号
+
+      # 用jq解析清洗后的内容
+      options_json=$(echo "$cleaned_content" | jq . 2>/dev/null)
       if [ -n "$options_json" ] && [ "$options_json" != "null" ]; then
         echo "$options_json"
         return 0
       fi
-      echo "WARNING: $CONFIG_PATH 格式错误（尝试 $i/$retries）"
+      echo "WARNING: $CONFIG_PATH 格式错误，已尝试清洗（尝试 $i/$retries）"
     else
       echo "WARNING: $CONFIG_PATH 不存在或不可读（尝试 $i/$retries）"
     fi
     sleep $delay
   done
 
-  # 多次失败后，返回默认配置（确保Redis能启动）
-  echo '{"max_memory":"128mb","require_pass":"","appendonly":false,"TZ":"UTC"}'
+  # 最终返回默认配置
+  echo "$default_json"
 }
-
 # 执行读取逻辑，获取有效配置
 OPTIONS_JSON=$(read_options)
 
