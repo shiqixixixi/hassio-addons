@@ -23,7 +23,7 @@ schema:
   appendonly: bool
 environment:
   # 关键：HassOS会将options中的值注入到这些环境变量中
-  HASS_MAX_MEMORY: "{{ max_memory }}"    # 用双大括号+空格，严格遵循HA模板语法
-  HASS_REQUIRE_PASS: "{{ require_pass }}"
-  HASS_APPENDONLY: "{{ appendonly }}"
+  REDIS_MAX_MEMORY: "{{ max_memory }}"    # 用双大括号+空格，严格遵循HA模板语法
+  REDIS_REQUIRE_PASS: "{{ require_pass }}"
+  REDIS_APPENDONLY: "{{ appendonly }}"
   TZ: "{{ TZ }}"  # 继承HA时区
