@@ -5,6 +5,12 @@ set -e  # 脚本出错时立即退出，避免后续逻辑异常
 # HassOS自动将用户配置生成到/data/options.json，无需手动创建
 CONFIG_PATH="/data/options.json"
 
+# 在read_options函数内，读取文件后添加：
+echo "=== 原始options.json内容 ==="
+cat "$CONFIG_PATH" 2>/dev/null
+echo "=========================="
+
+
 # 容错读取：处理文件不存在、权限不足、JSON格式错误三种情况
 # 若解析失败，自动使用默认配置（确保Redis能启动）
 read_options() {
