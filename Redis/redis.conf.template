@@ -1,0 +1,14 @@
+daemonize no
+pidfile /var/run/redis/redis.pid
+port 6379
+bind 0.0.0.0
+timeout 0
+tcp-keepalive 300
+dir __REDIS_DIR__
+dbfilename dump.rdb
+appendonly __APPENDONLY__
+appendfilename "appendonly.aof"
+maxmemory __MAX_MEMORY__
+maxmemory-policy allkeys-lru
+__REQUIRE_PASS__  # 密码占位符（无密码时会被删除）
+protected-mode no
