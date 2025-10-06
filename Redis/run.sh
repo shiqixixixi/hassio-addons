@@ -1,54 +1,98 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-# -------------------------- 1. 读取 options.json（完全复用 Mopidy 解析方式） --------------------------
-# 定义配置文件路径（HassOS 自动生成，与 Mopidy 路径一致）
-OPTIONS_FILE="/data/options.json"
+CONFIG_PATH=/data/options.json
+TARGET="$(bashio::config 'target')"
+echo "$TARGET"
 
-# 1. 解析普通字段：local_scan 对应 Redis 的基础配置（max_memory/require_pass/appendonly）
-# 复用 Mopidy 的 "jq -r '.字段名 // 默认值'" 语法，确保字段不存在时兜底
-max_memory=$(cat "$OPTIONS_FILE" | jq -r '.max_memory // "128mb"')
-require_pass=$(cat "$OPTIONS_FILE" | jq -r '.require_pass // ""')
-appendonly=$(cat "$OPTIONS_FILE" | jq -r '.appendonly // "false"')
-
-# 2. （可选）若扩展嵌套数组配置（如自定义 Redis 命令行参数），复用 Mopidy 数组解析逻辑
-# 示例：解析 "custom_args" 数组（格式同 Mopidy 的 "options" 数组：[{"name":"参数名","value":"参数值"}]）
-# 逻辑完全一致：遍历数组→格式化为 "--参数名  参数值"→拼接为字符串
-custom_args=$(cat "$OPTIONS_FILE" | jq -r '
-  if .custom_args then 
-    [.custom_args[] | "--" + .name + " " + .value ] | join(" ") 
-  else 
-    "" 
-  end
-')
-
-# -------------------------- 2. 调试打印（参考 Mopidy 简洁风格） --------------------------
-echo "=== Redis 配置解析结果 ==="
-echo "内存限制: $max_memory"
-echo "AOF 持久化: $appendonly"
-echo "密码: ${require_pass:-(无密码)}"
-echo "自定义参数: $custom_args"
+# 1. 打印原始环境变量（用于调试）
+echo "=== 容器原始环境变量 ==="
+env | grep -E "REDIS_|TZ"
 echo "======================"
 
-# -------------------------- 3. 数据目录处理（适配 Redis 需求） --------------------------
-# 复用 Mopidy 目录容错逻辑，确保目录存在
-redis_dir="/data/redis"
-if [ ! -d "$redis_dir" ]; then
-  echo "WARNING: $redis_dir 不存在，使用备用目录 /opt/redis"
-  redis_dir="/opt/redis"
-  mkdir -p "$redis_dir"
+# 2. 读取/data/options.json作为备用配置源（关键：绕过模板解析问题）
+# 即使权限受限，也用默认值兜底
+OPTIONS_JSON=$(cat /data/options.json 2>/dev/null || echo '{"max_memory":"128mb","require_pass":"","appendonly":false}')
+
+# 3. 从options.json提取实际值（覆盖环境变量中的模板语法）
+# 若环境变量是模板（如{{ max_memory }}），则用options.json的值替换
+MAX_MEMORY_FROM_JSON=$(echo "$OPTIONS_JSON" | jq -r '.max_memory')
+REQUIRE_PASS_FROM_JSON=$(echo "$OPTIONS_JSON" | jq -r '.require_pass')
+APPENDONLY_FROM_JSON=$(echo "$OPTIONS_JSON" | jq -r '.appendonly')
+
+# 4. 处理环境变量：若为模板语法，则用JSON中的值覆盖
+if [[ "$REDIS_MAX_MEMORY" == *"{{"* ]]; then
+  MAX_MEMORY="$MAX_MEMORY_FROM_JSON"
+else
+  MAX_MEMORY="${REDIS_MAX_MEMORY:-128mb}"
 fi
 
-# -------------------------- 4. 启动 Redis（复用 Mopidy "命令+参数" 拼接方式） --------------------------
-# 转换 AOF 布尔值为 Redis 支持的 yes/no（Mopidy 无此需求，为 Redis 适配）
-aof_flag="$([ "$appendonly" = "true" ] && echo "yes" || echo "no")"
+if [[ "$REDIS_REQUIRE_PASS" == *"{{"* ]]; then
+  REQUIRE_PASS="$REQUIRE_PASS_FROM_JSON"
+else
+  REQUIRE_PASS="${REDIS_REQUIRE_PASS:-}"
+fi
 
-# 拼接启动命令（同 Mopidy "应用+配置+参数" 结构，自定义参数直接追加）
-exec redis-server \
-  --dir "$redis_dir" \
-  --maxmemory "$max_memory" \
-  --appendonly "$aof_flag" \
-  --requirepass "$require_pass" \
-  --bind 0.0.0.0 \
-  --protected-mode no \
-  $custom_args
+if [[ "$REDIS_APPENDONLY" == *"{{"* ]]; then
+  APPENDONLY="$APPENDONLY_FROM_JSON"
+else
+  APPENDONLY="${REDIS_APPENDONLY:-false}"
+fi
+
+TZ="${TZ:-UTC}"
+
+# 5. 打印最终生效的变量（验证是否替换成功）
+echo "=== 最终生效的环境变量 ==="
+echo "内存限制 (MAX_MEMORY): $MAX_MEMORY"
+echo "AOF持久化 (APPENDONLY): $APPENDONLY"
+echo "密码 (REQUIRE_PASS): ${REQUIRE_PASS:-(无密码)}"
+echo "时区 (TZ): $TZ"
+echo "======================"
+
+# 6. 处理数据目录
+REDIS_DIR="/data/redis"
+if [ ! -d "$REDIS_DIR" ]; then
+  echo "使用备用目录 /opt/redis"
+  REDIS_DIR="/opt/redis"
+fi
+mkdir -p "$REDIS_DIR"
+
+# 7. 启动Redis并动态配置
+redis-server /redis.conf --dir "$REDIS_DIR" &
+sleep 2
+
+if redis-cli ping >/dev/null 2>&1; then
+  # 应用内存限制（确保是有效格式，如128mb）
+  if [[ "$MAX_MEMORY" =~ ^[0-9]+(mb|gb)$ ]]; then
+    redis-cli config set maxmemory "$MAX_MEMORY"
+    echo "已设置maxmemory: $MAX_MEMORY"
+  else
+    echo "警告：无效的内存格式，使用默认128mb"
+    redis-cli config set maxmemory "128mb"
+  fi
+
+  # 应用AOF设置
+  if [ "$APPENDONLY" = "true" ]; then
+    redis-cli config set appendonly yes
+    echo "已开启AOF持久化"
+  else
+    redis-cli config set appendonly no
+    echo "已关闭AOF持久化"
+  fi
+
+  # 应用密码
+  if [ -n "$REQUIRE_PASS" ]; then
+    redis-cli config set requirepass "$REQUIRE_PASS"
+    echo "已设置密码"
+  else
+    redis-cli config set requirepass ""
+    echo "未设置密码"
+  fi
+
+  echo "配置已成功应用到Redis"
+else
+  echo "ERROR: Redis启动失败，无法应用配置"
+  exit 1
+fi
+
+wait
