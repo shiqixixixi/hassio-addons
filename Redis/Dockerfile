@@ -8,12 +8,6 @@ LABEL description="Redis server for Home Assistant (HassOS Add-on)"
 RUN apk add --no-cache bash jq curl\
     && rm -rf /var/cache/apk/*
 
-# 安装Bashio（HA官方提供的加载项工具库，简化配置读取）
-RUN curl -J -L "https://github.com/hassio-addons/bashio/archive/v0.17.4.tar.gz" | tar -xzf - -C /tmp \
-    && mv /tmp/bashio-0.17.4/lib /usr/lib/bashio \
-    && rm -rf /tmp/bashio-0.17.4 \
-    && chmod -R 755 /usr/lib/bashio
-
 # 创建Redis数据目录并授权（HassOS默认用abc用户，UID=1000）
 RUN mkdir -p /data/redis /opt/redis /var/run/redis \
     && chown -R 1000:1000 /data/redis /opt/redis /var/run/redis \
