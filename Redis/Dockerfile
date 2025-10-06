@@ -10,8 +10,8 @@ RUN apk add --no-cache bash jq curl\
 
 # 安装Bashio（HA官方提供的加载项工具库，简化配置读取）
 RUN curl -J -L "https://github.com/hassio-addons/bashio/archive/v0.17.4.tar.gz" | tar -xzf - -C /tmp \
-    && mv /tmp/bashio-0.14.3/lib /usr/lib/bashio \
-    && rm -rf /tmp/bashio-0.14.3 \
+    && mv /tmp/bashio-0.17.4/lib /usr/lib/bashio \
+    && rm -rf /tmp/bashio-0.17.4 \
     && chmod -R 755 /usr/lib/bashio
 
 # 创建Redis数据目录并授权（HassOS默认用abc用户，UID=1000）
