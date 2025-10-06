@@ -2,7 +2,7 @@
 set -e
 
 CONFIG_PATH=/data/options.json
-TARGET="$(bashio::config 'target')"
+TARGET="$(bashio::config 'max_memory')"
 echo "$TARGET"
 
 # 1. 打印原始环境变量（用于调试）
