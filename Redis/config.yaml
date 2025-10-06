@@ -17,15 +17,10 @@ ports:
 ports_description:
   6379/tcp: Redis server port
 options:
-  max_memory: "128mb"        # 普通字符串字段（同 Mopidy 的 local_scan）
+  max_memory: "128mb"        # 普通字符串字段
   require_pass: ""           # 普通字符串字段
   appendonly: false          # 普通布尔字段
-  custom_args: []            # 可选数组（同 Mopidy 的 options 数组，存储自定义参数）
-# 参考 Mopidy 的 schema 定义：字段类型+数组结构
 schema:
   max_memory: str
   require_pass: str
   appendonly: bool
-  custom_args:               # 数组类型定义（完全复用 Mopidy 的 options 数组 schema）
-    - name: str              # 自定义参数名（如 maxclients、slowlog-log-slower-than）
-      value: str             # 自定义参数值（如 1000、10000）
