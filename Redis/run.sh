@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
+# 1. 强制修复options.json权限（HassOS可能动态重置权限，这里冗余处理）
+if [ -f "/data/options.json" ]; then
+  chmod 644 /data/options.json  # 临时赋予读权限（仅本次运行有效）
+else
+  echo "ERROR: /data/options.json not found! Using defaults."
+fi
+
 # 1. 直接从HassOS加载项配置文件读取参数（核心！不依赖环境变量）
 # HassOS加载项的配置文件路径固定为 /data/options.json
 OPTIONS=$(cat /data/options.json)
