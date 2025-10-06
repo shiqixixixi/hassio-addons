@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+# 在脚本开头添加，打印所有环境变量
+echo "=== 容器所有环境变量 ==="
+env | grep -E "REDIS_|TZ"  # 过滤Redis相关变量
+echo "======================"
+
 # 1. 读取从 config.yaml 的 environment 注入的环境变量
 # 变量名与 environment 中定义的键完全一致（如 REDIS_MAX_MEMORY、TZ 等）
 # 同时设置默认值，防止未注入时出错
