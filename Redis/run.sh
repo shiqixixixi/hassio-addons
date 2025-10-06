@@ -5,12 +5,6 @@ set -e  # 脚本出错时立即退出，避免后续逻辑异常
 # HassOS自动将用户配置生成到/data/options.json，无需手动创建
 CONFIG_PATH="/data/options.json"
 
-# 在read_options函数内，读取文件后添加：
-echo "=== 原始options.json内容 ==="
-cat "$CONFIG_PATH" 2>/dev/null
-echo "=========================="
-
-
 # 容错读取：处理文件不存在、权限不足、JSON格式错误三种情况
 # 若解析失败，自动使用默认配置（确保Redis能启动）
 read_options() {
@@ -20,15 +14,10 @@ read_options() {
   local default_json='{"max_memory":"128mb","require_pass":"","appendonly":false,"TZ":"UTC"}'
 
   for ((i=1; i<=retries; i++)); do
-    if [ -f "$CONFIG_PATH" ] && [ -r "$CONFIG_PATH" ]; then
-      # 关键：清洗无效字符（移除控制字符、非JSON字符，闭合引号）
-      cleaned_content=$(cat "$CONFIG_PATH" | \
-        tr -d '\r' | \                   # 移除Windows换行符
-        sed 's/[^\x20-\x7E]//g' | \      # 保留ASCII可见字符
-        sed 's/"[^"]*$/""/' | \          # 闭合未结束的引号
-        sed 's/,\([^ ]*\)$/\1/' )        # 移除末尾多余的逗号
-
-      # 用jq解析清洗后的内容
+    # 检查文件是否存在且非空
+    if [ -f "$CONFIG_PATH" ] && [ -s "$CONFIG_PATH" ]; then  # -s 检查文件非空
+      # 清洗并解析
+      cleaned_content=$(cat "$CONFIG_PATH" | tr -d '\r' | sed 's/[^\x20-\x7E]//g')
       options_json=$(echo "$cleaned_content" | jq . 2>/dev/null)
       if [ -n "$options_json" ] && [ "$options_json" != "null" ]; then
         echo "$options_json"
@@ -36,7 +25,9 @@ read_options() {
       fi
       echo "WARNING: $CONFIG_PATH 格式错误，已尝试清洗（尝试 $i/$retries）"
     else
-      echo "WARNING: $CONFIG_PATH 不存在或不可读（尝试 $i/$retries）"
+      # 关键：文件为空或不存在，手动生成默认配置文件
+      echo "$default_json" > "$CONFIG_PATH"
+      echo "WARNING: $CONFIG_PATH 为空或不存在，已生成默认配置（尝试 $i/$retries）"
     fi
     sleep $delay
   done
