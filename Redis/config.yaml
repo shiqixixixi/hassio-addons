@@ -9,6 +9,11 @@ arch:
   - aarch64
 startup: application
 boot: auto
+init: false                  # 是否使用HA的init系统（一般为false，用自身启动脚本）
+map:                         # 目录映射（宿主机目录→容器目录，确保数据持久化）
+  - config: /data            # HA的config目录映射到容器的/data（存储options.json和应用数据）
+  - share: /share            # （可选）HA的share目录，用于共享文件
+  - addon_config: /config    # （可选）加载项专属配置目录
 ports:
   6379/tcp: 6379
 ports_description:
@@ -21,3 +26,4 @@ schema:
   max_memory: str      # 类型：str（与 options 中的字符串匹配）
   require_pass: str    # 类型：str（与 options 中的字符串匹配）
   appendonly: bool     # 类型：bool（与 options 中的布尔值匹配）
+privileged: true
