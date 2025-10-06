@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+# 1. 打印原始环境变量（用于调试）
+echo "=== 容器原始环境变量 ==="
+env | grep -E "REDIS_|TZ"
+echo "======================"
+
 # 1. 定义加载项数据目录（HassOS 中固定路径）
 ADDON_DATA_DIR="/data"
 OPTIONS_FILE="$ADDON_DATA_DIR/options.json"
