@@ -1,43 +1,82 @@
 #!/usr/bin/env bash
-set -e
+set -e  # 脚本出错时立即退出，避免后续逻辑异常
 
-# 加载Bashio库（HA官方配置工具）
-source /usr/lib/bashio/bashio
+# -------------------------- 1. 解析配置文件（核心：用jq读取options.json） --------------------------
+# HassOS自动将用户配置生成到/data/options.json，无需手动创建
+CONFIG_PATH="/data/options.json"
 
-# -------------------------- 1. 读取配置（通过Bashio，自动处理options.json） --------------------------
-# 读取max_memory（默认128mb）
-MAX_MEMORY=$(bashio::config 'max_memory' '128mb')
-# 读取密码（默认空）
-REQUIRE_PASS=$(bashio::config 'require_pass' '')
-# 读取AOF持久化开关（默认false）
-APPENDONLY=$(bashio::config 'appendonly' 'false')
-# 读取时区（继承HA系统时区）
-TZ=$(bashio::config 'TZ' 'UTC')
+# 容错读取：处理文件不存在、权限不足、JSON格式错误三种情况
+# 若解析失败，自动使用默认配置（确保Redis能启动）
+read_options() {
+  local retries=3  # 重试3次（应对HassOS挂载目录延迟）
+  local delay=2    # 每次重试间隔2秒
+  local options_json
 
-# 调试打印配置
-bashio::log.info "=== Redis配置参数 ==="
-bashio::log.info "内存限制: $MAX_MEMORY"
-bashio::log.info "AOF持久化: $APPENDONLY"
-bashio::log.info "密码: $( [ -n "$REQUIRE_PASS" ] && echo "已设置" || echo "未设置" )"
-bashio::log.info "时区: $TZ"
+  for ((i=1; i<=retries; i++)); do
+    # 检查文件是否存在且可读
+    if [ -f "$CONFIG_PATH" ] && [ -r "$CONFIG_PATH" ]; then
+      # 用jq验证JSON格式，格式错误则返回空
+      options_json=$(cat "$CONFIG_PATH" | jq . 2>/dev/null)
+      # 若解析结果非空，返回有效JSON
+      if [ -n "$options_json" ] && [ "$options_json" != "null" ]; then
+        echo "$options_json"
+        return 0
+      fi
+      echo "WARNING: $CONFIG_PATH 格式错误（尝试 $i/$retries）"
+    else
+      echo "WARNING: $CONFIG_PATH 不存在或不可读（尝试 $i/$retries）"
+    fi
+    sleep $delay
+  done
 
-# -------------------------- 2. 处理数据目录 --------------------------
+  # 多次失败后，返回默认配置（确保Redis能启动）
+  echo '{"max_memory":"128mb","require_pass":"","appendonly":false,"TZ":"UTC"}'
+}
+
+# 执行读取逻辑，获取有效配置
+OPTIONS_JSON=$(read_options)
+
+# 解析具体配置项（// 用于设置默认值，避免字段缺失）
+MAX_MEMORY=$(echo "$OPTIONS_JSON" | jq -r '.max_memory // "128mb"')
+REQUIRE_PASS=$(echo "$OPTIONS_JSON" | jq -r '.require_pass // ""')
+APPENDONLY=$(echo "$OPTIONS_JSON" | jq -r '.appendonly // "false"')
+TZ=$(echo "$OPTIONS_JSON" | jq -r '.TZ // "UTC"')  # 继承HA系统时区
+
+# -------------------------- 2. 调试打印（确认配置正确，便于排查问题） --------------------------
+echo "=== Redis Add-on 配置信息 ==="
+echo "配置文件内容: $OPTIONS_JSON"
+echo "内存限制: $MAX_MEMORY"
+echo "AOF持久化: $APPENDONLY"
+echo "访问密码: ${REQUIRE_PASS:-(未设置密码)}"
+echo "系统时区: $TZ"
+echo "============================="
+
+# -------------------------- 3. 处理数据目录（确保目录存在，避免启动失败） --------------------------
 REDIS_DIR="/data/redis"
 if [ ! -d "$REDIS_DIR" ]; then
-  bashio::log.warning "/data/redis不存在，使用备用目录/opt/redis"
+  echo "WARNING: 主数据目录 $REDIS_DIR 不存在，使用备用目录 /opt/redis"
   REDIS_DIR="/opt/redis"
+  # 强制创建备用目录（防止目录未生成）
   mkdir -p "$REDIS_DIR"
 fi
 
-# -------------------------- 3. 启动Redis并应用配置 --------------------------
-# 转换AOF开关为Redis支持的yes/no
+# -------------------------- 4. 启动Redis（动态应用配置，保持前台运行） --------------------------
+# 转换AOF参数：Redis要求yes/no，HA界面配置是true/false
 AOF_FLAG="$([ "$APPENDONLY" = "true" ] && echo "yes" || echo "no")"
 
-# 启动Redis（用exec确保进程为PID=1，HassOS可管理）
+# 验证内存格式（确保是数字+mb/gb，避免Redis启动报错）
+if ! [[ "$MAX_MEMORY" =~ ^[0-9]+(mb|gb)$ ]]; then
+  echo "WARNING: 内存格式无效（$MAX_MEMORY），使用默认值 128mb"
+  MAX_MEMORY="128mb"
+fi
+
+# 用exec启动Redis，确保进程为容器PID=1（HassOS能正确管理启动/停止）
 exec redis-server \
-  --dir "$REDIS_DIR" \
-  --maxmemory "$MAX_MEMORY" \
-  --appendonly "$AOF_FLAG" \
-  --requirepass "$REQUIRE_PASS" \
-  --bind 0.0.0.0 \
-  --protected-mode no
+  --dir "$REDIS_DIR" \                  # 数据存储目录
+  --maxmemory "$MAX_MEMORY" \           # 内存限制
+  --appendonly "$AOF_FLAG" \            # AOF持久化
+  --requirepass "$REQUIRE_PASS" \       # 访问密码
+  --bind 0.0.0.0 \                      # 允许所有IP访问（HA内部网络安全）
+  --protected-mode no \                 # 关闭保护模式（HA内部使用）
+  --loglevel notice \                   # 日志级别（避免冗余日志）
+  --logfile /dev/stdout                 # 日志输出到stdout（HassOS能捕获日志）
