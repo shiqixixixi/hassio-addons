@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
-# Redis 配置文件路径（容器内，目录已由 Dockerfile 创建）
+# Redis 配置文件路径
 REDIS_CONF="/data/redis/redis.conf"
+
+# 关键修复：确保父目录存在并设置权限
+mkdir -p /data/redis  # 创建目录（-p 确保多级目录都能创建，且已存在时不报错）
+chmod 755 /data/redis  # 赋予读写执行权限（适配容器内用户）
 
 # 处理 appendonly 格式（true/false → yes/no）
 if [ "$APPENDONLY" = "true" ]; then
@@ -11,7 +15,7 @@ else
   APPENDONLY="no"
 fi
 
-# 直接生成配置文件（此时 redis 用户有权限写入 /data/redis）
+# 生成配置文件（此时目录已存在，可正常写入）
 cat > "$REDIS_CONF" <<EOL
 daemonize no
 pidfile /var/run/redis.pid
