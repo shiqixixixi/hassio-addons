@@ -1,50 +1,55 @@
 #!/usr/bin/env bash
 set -e
 
-# 1. 安全读取options.json（带重试和默认值，不修改权限）
-read_options() {
+# 1. 安全读取并校验 options.json（不修改权限，仅读取）
+read_and_validate_options() {
+  local options_file="/data/options.json"
   local retries=5
   local delay=2
-  local options_file="/data/options.json"
-  
-  # 重试读取，应对挂载延迟导致的临时不可读
+
+  # 重试读取，等待文件生成
   for ((i=1; i<=retries; i++)); do
     if [ -f "$options_file" ] && [ -r "$options_file" ]; then
-      # 成功读取，返回配置
-      cat "$options_file"
-      return 0
+      # 读取文件内容
+      local content=$(cat "$options_file")
+      
+      # 校验 JSON 格式（用 jq 测试解析）
+      if echo "$content" | jq . >/dev/null 2>&1; then
+        echo "$content"  # 格式正确，返回内容
+        return 0
+      else
+        echo "WARNING: $options_file has invalid JSON (attempt $i/$retries)"
+      fi
     fi
-    echo "WARNING: $options_file not readable (attempt $i/$retries), waiting..."
     sleep $delay
   done
-  
-  # 多次失败后返回默认配置JSON
+
+  # 多次失败后返回安全默认配置
   echo '{"max_memory": "128mb", "require_pass": "", "appendonly": false}'
 }
 
-# 2. 解析配置（从读取结果中提取，确保有值）
-OPTIONS=$(read_options)
-MAX_MEMORY=$(echo "$OPTIONS" | jq -r '.max_memory')
-REQUIRE_PASS=$(echo "$OPTIONS" | jq -r '.require_pass')
-APPENDONLY=$(echo "$OPTIONS" | jq -r '.appendonly')
+# 2. 解析配置（确保 jq 不会崩溃）
+OPTIONS=$(read_and_validate_options)
+MAX_MEMORY=$(echo "$OPTIONS" | jq -r '.max_memory // "128mb"')
+REQUIRE_PASS=$(echo "$OPTIONS" | jq -r '.require_pass // ""')
+APPENDONLY=$(echo "$OPTIONS" | jq -r '.appendonly // "false"')
 
-# 3. 目录处理（确保数据目录可用）
+# 3. 处理数据目录
 REDIS_DIR="/data/redis"
 if [ ! -d "$REDIS_DIR" ]; then
   echo "Using backup directory /opt/redis"
   REDIS_DIR="/opt/redis"
-  mkdir -p "$REDIS_DIR"  # 确保备用目录存在
+  mkdir -p "$REDIS_DIR"
 fi
 
-# 4. 启动Redis并动态配置（绕开配置文件变量）
-# 先启动Redis（用基础配置）
+# 4. 启动 Redis 并动态应用配置
 redis-server /redis.conf --dir "$REDIS_DIR" &
-sleep 2  # 等待服务就绪
+sleep 2  # 等待服务启动
 
-# 动态应用配置（无论参数是否读取成功，均有默认值）
-redis-cli config set maxmemory "${MAX_MEMORY:-128mb}"
-[ "${APPENDONLY:-false}" = "true" ] && redis-cli config set appendonly yes
-[ -n "${REQUIRE_PASS}" ] && redis-cli config set requirepass "${REQUIRE_PASS}"
+# 动态设置参数（兼容各种场景）
+redis-cli config set maxmemory "${MAX_MEMORY}"
+[ "$APPENDONLY" = "true" ] && redis-cli config set appendonly yes
+[ -n "$REQUIRE_PASS" ] && redis-cli config set requirepass "$REQUIRE_PASS"
 
-# 5. 保持前台运行（HassOS要求）
+# 5. 保持前台运行
 wait
