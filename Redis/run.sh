@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 set -e
 
-CONFIG_PATH=/data/options.json
-TARGET="$(bashio::config 'max_memory')"
-echo "$TARGET"
+# 加载 Bashio 库（HassOS 加载项默认内置，提供配置读取等工具函数）
+source /usr/lib/bashio/bashio
 
+# 定义配置文件路径（Bashio 会自动读取 /data/options.json，此行为可选）
+CONFIG_PATH="/data/options.json"
+
+# 使用 bashio::config 读取 options 中的 max_memory（自动处理 JSON 解析和默认值）
+# 语法：bashio::config '字段名' [默认值]
+TARGET="$(bashio::config 'max_memory' '128mb')"  # 若 max_memory 不存在，默认使用 128mb
+
+# 打印结果（验证是否读取成功）
+echo "读取到的 max_memory: $TARGET"
 # 1. 打印原始环境变量（用于调试）
 echo "=== 容器原始环境变量 ==="
 env | grep -E "REDIS_|TZ"
