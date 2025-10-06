@@ -14,15 +14,16 @@ ports:
 ports_description:
   6379/tcp: Redis server port
 options:
-  max_memory: "128mb"
-  require_pass: ""
+  max_memory: "128mb"  # 默认值，必须带单位（mb/gb）
+  require_pass: ""     # 默认空密码
   appendonly: false
 schema:
   max_memory: str
   require_pass: str
   appendonly: bool
 environment:
-  TZ: "${TZ}"
-  MAX_MEMORY: "${max_memory}"  # 确保这里的变量名与options中的一致（max_memory）
-  REQUIRE_PASS: "${require_pass}"
-  APPENDONLY: "${appendonly}"
+  # 关键：HassOS会将options中的值注入到这些环境变量中
+  HASS_MAX_MEMORY: "{{ max_memory }}"    # 用双大括号+空格，严格遵循HA模板语法
+  HASS_REQUIRE_PASS: "{{ require_pass }}"
+  HASS_APPENDONLY: "{{ appendonly }}"
+  TZ: "{{ TZ }}"  # 继承HA时区
