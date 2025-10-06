@@ -1,48 +1,34 @@
 #!/usr/bin/env bash
 set -e
 
-# 1. 从HassOS注入的环境变量中读取值（变量名与config.yaml对应）
-# 若未获取到，使用默认值兜底
-MAX_MEMORY="${HASS_MAX_MEMORY:-128mb}"
-REQUIRE_PASS="${HASS_REQUIRE_PASS:-}"
-APPENDONLY="${HASS_APPENDONLY:-false}"
+# 1. 从HassOS配置文件读取参数（路径固定）
+OPTIONS=$(cat /data/options.json)
+MAX_MEMORY=$(echo "$OPTIONS" | jq -r '.max_memory // "128mb"')  # 直接用jq设置默认值
+REQUIRE_PASS=$(echo "$OPTIONS" | jq -r '.require_pass // ""')
+APPENDONLY=$(echo "$OPTIONS" | jq -r '.appendonly // "false"')
 
-# 2. 目录检测与兜底（已验证有效）
+# 2. 目录处理
 REDIS_DIR="/data/redis"
-if [ ! -d "$REDIS_DIR" ]; then
-  echo "WARNING: /data/redis not found, use backup dir /opt/redis"
-  REDIS_DIR="/opt/redis"
-fi
-REDIS_CONF="${REDIS_DIR}/redis.conf"
+[ ! -d "$REDIS_DIR" ] && REDIS_DIR="/opt/redis"
 
-# 3. 处理appendonly格式（true/false → yes/no）
-APPENDONLY_FLAG="no"
-if [ "$APPENDONLY" = "true" ]; then
-  APPENDONLY_FLAG="yes"
-fi
-
-# 4. 生成Redis配置文件（绝对纯净，不带任何注释，避免语法错误）
-cat > "$REDIS_CONF" <<EOL
-daemonize no
+# 3. 拼接配置内容
+CONFIG_CONTENT="daemonize no
 pidfile /var/run/redis/redis.pid
 port 6379
 bind 0.0.0.0
 timeout 0
 tcp-keepalive 300
-dir ${REDIS_DIR}
+dir $REDIS_DIR
 dbfilename dump.rdb
-appendonly ${APPENDONLY_FLAG}
-appendfilename "appendonly.aof"
-maxmemory ${MAX_MEMORY}
+appendonly $( [ "$APPENDONLY" = "true" ] && echo "yes" || echo "no" )
+appendfilename \"appendonly.aof\"
+maxmemory $MAX_MEMORY
 maxmemory-policy allkeys-lru
-$(if [ -n "${REQUIRE_PASS}" ]; then echo "requirepass ${REQUIRE_PASS}"; fi)
-protected-mode no
-EOL
+$( [ -n "$REQUIRE_PASS" ] && echo "requirepass $REQUIRE_PASS" )
+protected-mode no"
 
-# 5. 打印配置验证（确认变量已被替换）
-echo "=== Generated Redis Config ==="
-cat "$REDIS_CONF"
-echo "=============================="
+# 4. 写入配置文件
+echo "$CONFIG_CONTENT" > "$REDIS_DIR/redis.conf"
 
-# 6. 启动Redis
-exec redis-server "$REDIS_CONF"
+# 5. 启动Redis
+exec redis-server "$REDIS_DIR/redis.conf"
