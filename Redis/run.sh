@@ -1,84 +1,52 @@
 #!/usr/bin/env bash
-set -e  # 脚本出错时立即退出，避免后续逻辑异常
+set -e
 
-# -------------------------- 1. 解析配置文件（核心：用jq读取options.json） --------------------------
-# HassOS自动将用户配置生成到/data/options.json，无需手动创建
-CONFIG_PATH="/data/options.json"
-
-# 容错读取：处理文件不存在、权限不足、JSON格式错误三种情况
-# 若解析失败，自动使用默认配置（确保Redis能启动）
-read_options() {
-  local retries=3
+# 1. 安全读取并校验配置（保留之前的容错逻辑）
+read_and_validate_options() {
+  local options_file="/data/options.json"
+  local retries=5
   local delay=2
-  local options_json
-  local default_json='{"max_memory":"128mb","require_pass":"","appendonly":false,"TZ":"UTC"}'
-
   for ((i=1; i<=retries; i++)); do
-    # 检查文件是否存在且非空
-    if [ -f "$CONFIG_PATH" ] && [ -s "$CONFIG_PATH" ]; then  # -s 检查文件非空
-      # 清洗并解析
-      cleaned_content=$(cat "$CONFIG_PATH" | tr -d '\r' | sed 's/[^\x20-\x7E]//g')
-      options_json=$(echo "$cleaned_content" | jq . 2>/dev/null)
-      if [ -n "$options_json" ] && [ "$options_json" != "null" ]; then
-        echo "$options_json"
+    if [ -f "$options_file" ] && [ -r "$options_file" ]; then
+      local content=$(cat "$options_file")
+      if echo "$content" | jq . >/dev/null 2>&1; then
+        echo "$content"
         return 0
       fi
-      echo "WARNING: $CONFIG_PATH 格式错误，已尝试清洗（尝试 $i/$retries）"
-    else
-      # 关键：文件为空或不存在，手动生成默认配置文件
-      echo "$default_json" > "$CONFIG_PATH"
-      echo "WARNING: $CONFIG_PATH 为空或不存在，已生成默认配置（尝试 $i/$retries）"
     fi
     sleep $delay
   done
-
-  # 最终返回默认配置
-  echo "$default_json"
+  echo '{"max_memory": "128mb", "require_pass": "", "appendonly": false}'
 }
-# 执行读取逻辑，获取有效配置
-OPTIONS_JSON=$(read_options)
 
-# 解析具体配置项（// 用于设置默认值，避免字段缺失）
-MAX_MEMORY=$(echo "$OPTIONS_JSON" | jq -r '.max_memory // "128mb"')
-REQUIRE_PASS=$(echo "$OPTIONS_JSON" | jq -r '.require_pass // ""')
-APPENDONLY=$(echo "$OPTIONS_JSON" | jq -r '.appendonly // "false"')
-TZ=$(echo "$OPTIONS_JSON" | jq -r '.TZ // "UTC"')  # 继承HA系统时区
+# 2. 解析配置
+OPTIONS=$(read_and_validate_options)
+MAX_MEMORY=$(echo "$OPTIONS" | jq -r '.max_memory // "128mb"')
+REQUIRE_PASS=$(echo "$OPTIONS" | jq -r '.require_pass // ""')
+APPENDONLY=$(echo "$OPTIONS" | jq -r '.appendonly // "false"')
 
-# -------------------------- 2. 调试打印（确认配置正确，便于排查问题） --------------------------
-echo "=== Redis Add-on 配置信息 ==="
-echo "配置文件内容: $OPTIONS_JSON"
-echo "内存限制: $MAX_MEMORY"
-echo "AOF持久化: $APPENDONLY"
-echo "访问密码: ${REQUIRE_PASS:-(未设置密码)}"
-echo "系统时区: $TZ"
-echo "============================="
-
-# -------------------------- 3. 处理数据目录（确保目录存在，避免启动失败） --------------------------
+# 3. 确定数据目录并确保存在
 REDIS_DIR="/data/redis"
 if [ ! -d "$REDIS_DIR" ]; then
-  echo "WARNING: 主数据目录 $REDIS_DIR 不存在，使用备用目录 /opt/redis"
+  echo "Using backup directory /opt/redis"
   REDIS_DIR="/opt/redis"
-  # 强制创建备用目录（防止目录未生成）
-  mkdir -p "$REDIS_DIR"
+fi
+mkdir -p "$REDIS_DIR"  # 强制创建目录（关键：确保目录存在）
+
+# 4. 启动Redis时动态指定数据目录（覆盖配置文件中的dir指令）
+# 注意：--dir参数会覆盖redis.conf中的dir配置
+redis-server /redis.conf --dir "$REDIS_DIR" &
+sleep 2  # 等待服务启动
+
+# 5. 动态应用其他配置
+if redis-cli ping >/dev/null 2>&1; then
+  redis-cli config set maxmemory "$MAX_MEMORY"
+  [ "$APPENDONLY" = "true" ] && redis-cli config set appendonly yes
+  [ -n "$REQUIRE_PASS" ] && redis-cli config set requirepass "$REQUIRE_PASS"
+else
+  echo "ERROR: Redis failed to start"
+  exit 1
 fi
 
-# -------------------------- 4. 启动Redis（动态应用配置，保持前台运行） --------------------------
-# 转换AOF参数：Redis要求yes/no，HA界面配置是true/false
-AOF_FLAG="$([ "$APPENDONLY" = "true" ] && echo "yes" || echo "no")"
-
-# 验证内存格式（确保是数字+mb/gb，避免Redis启动报错）
-if ! [[ "$MAX_MEMORY" =~ ^[0-9]+(mb|gb)$ ]]; then
-  echo "WARNING: 内存格式无效（$MAX_MEMORY），使用默认值 128mb"
-  MAX_MEMORY="128mb"
-fi
-
-# 用exec启动Redis，确保进程为容器PID=1（HassOS能正确管理启动/停止）
-exec redis-server \
-  --dir "$REDIS_DIR" \                  # 数据存储目录
-  --maxmemory "$MAX_MEMORY" \           # 内存限制
-  --appendonly "$AOF_FLAG" \            # AOF持久化
-  --requirepass "$REQUIRE_PASS" \       # 访问密码
-  --bind 0.0.0.0 \                      # 允许所有IP访问（HA内部网络安全）
-  --protected-mode no \                 # 关闭保护模式（HA内部使用）
-  --loglevel notice \                   # 日志级别（避免冗余日志）
-  --logfile /dev/stdout                 # 日志输出到stdout（HassOS能捕获日志）
+# 6. 保持前台运行
+wait
