@@ -18,7 +18,7 @@ RUN \
         build-base=0.5-r3 \
         linux-headers=6.14.2-r0 \
         py3-pip=25.1.1-r0 \
-        python3-dev=3.12.11-r0 \
+        python3-dev=3.12.12-r0 \
     \
     && apk add --no-cache \
         git=2.49.1-r0 \
@@ -26,7 +26,7 @@ RUN \
         nginx=1.28.0-r3 \
         nodejs=22.16.0-r2 \
         npm=11.3.0-r1 \
-        openssh-client=10.0_p1-r7 \
+        openssh-client=10.0_p1-r9 \
         patch=2.8-r0 \
     \
     && npm install \
@@ -52,14 +52,8 @@ RUN \
         /root/.nrpmrc \
         /tmp/*
 
-
 # Copy root filesystem
 COPY rootfs /
-
-# 关键修改2：先ls验证路径下的脚本是否存在，再用通配符批量加权限（避免遗漏）
-RUN ls -l /etc/s6-overlay/s6-rc.d/  \
-    && chmod -R +x /etc/s6-overlay/s6-rc.d/*/run  \
-    && chown -R root:root /etc/s6-overlay/s6-rc.d/  # 确保属主为root，适配s6-overlay运行规则
 
 # Health check
 HEALTHCHECK --start-period=10m \
