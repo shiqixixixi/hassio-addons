@@ -55,6 +55,11 @@ RUN \
 # Copy root filesystem
 COPY rootfs /
 
+# 关键修改2：先ls验证路径下的脚本是否存在，再用通配符批量加权限（避免遗漏）
+RUN ls -l /etc/s6-overlay/s6-rc.d/  \
+    && chmod -R +x /etc/s6-overlay/s6-rc.d/*/run  \
+    && chown -R root:root /etc/s6-overlay/s6-rc.d/  # 确保属主为root，适配s6-overlay运行规则
+    
 # Health check
 HEALTHCHECK --start-period=10m \
     CMD curl --fail http://127.0.0.1:46836 || exit 1
