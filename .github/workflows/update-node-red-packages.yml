@@ -19,8 +19,8 @@ jobs:
           ls -R
           
           # 检查目标目录是否存在
-          if [ ! -d "hassio-addons/node-red" ]; then
-            echo "Error: Directory 'hassio-addons/node-red' not found"
+          if [ ! -d "node-red" ]; then
+            echo "Error: Directory 'node-red' not found"
             exit 1
           fi
 
@@ -35,10 +35,10 @@ jobs:
           # 尝试常见的Node-RED目录路径（根据实际仓库结构调整）
           if [ -d "node-red" ]; then
             cd node-red
-          elif [ -d "addons/node-red" ]; then
-            cd addons/node-red
+          elif [ -d "node-red" ]; then
+            cd node-red
           else
-            cd hassio-addons/node-red
+            cd node-red
           fi
           npm install --package-lock-only
 
@@ -46,10 +46,10 @@ jobs:
         run: |
           if [ -d "node-red" ]; then
             cd node-red
-          elif [ -d "addons/node-red" ]; then
-            cd addons/node-red
+          elif [ -d "node-red" ]; then
+            cd node-red
           else
-            cd hassio-addons/node-red
+            cd node-red
           fi
           npm install -g npm-check-updates
           ncu -u
@@ -60,10 +60,10 @@ jobs:
         run: |
           if [ -d "node-red" ]; then
             cd node-red
-          elif [ -d "addons/node-red" ]; then
-            cd addons/node-red
+          elif [ -d "node-red" ]; then
+            cd node-red
           else
-            cd hassio-addons/node-red
+            cd node-red
           fi
           if git diff --quiet package.json package-lock.json; then
             echo "changes=false" >> $GITHUB_OUTPUT
@@ -80,10 +80,10 @@ jobs:
           # 确定正确的路径用于提交
           if [ -d "node-red" ]; then
             FILE_PATH="node-red"
-          elif [ -d "addons/node-red" ]; then
-            FILE_PATH="addons/node-red"
+          elif [ -d "node-red" ]; then
+            FILE_PATH="node-red"
           else
-            FILE_PATH="hassio-addons/node-red"
+            FILE_PATH="node-red"
           fi
           
           git add $FILE_PATH/package.json $FILE_PATH/package-lock.json
