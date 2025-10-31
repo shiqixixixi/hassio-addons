@@ -12,21 +12,45 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Verify Node-RED directory exists
+        run: |
+          # 显示当前目录结构，帮助调试路径问题
+          echo "Current directory structure:"
+          ls -R
+          
+          # 检查目标目录是否存在
+          if [ ! -d "hassio-addons/node-red" ]; then
+            echo "Error: Directory 'hassio-addons/node-red' not found"
+            exit 1
+          fi
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18.x
-          # 完全禁用缓存，避免锁文件检查
-          cache: ''
+          cache: ''  # 禁用缓存避免锁文件问题
 
       - name: Install dependencies and generate lock file
         run: |
-          cd hassio-addons/node-red
+          # 尝试常见的Node-RED目录路径（根据实际仓库结构调整）
+          if [ -d "node-red" ]; then
+            cd node-red
+          elif [ -d "addons/node-red" ]; then
+            cd addons/node-red
+          else
+            cd hassio-addons/node-red
+          fi
           npm install --package-lock-only
 
       - name: Update packages to latest versions
         run: |
-          cd hassio-addons/node-red
+          if [ -d "node-red" ]; then
+            cd node-red
+          elif [ -d "addons/node-red" ]; then
+            cd addons/node-red
+          else
+            cd hassio-addons/node-red
+          fi
           npm install -g npm-check-updates
           ncu -u
           npm install --package-lock-only
@@ -34,7 +58,13 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
-          cd hassio-addons/node-red
+          if [ -d "node-red" ]; then
+            cd node-red
+          elif [ -d "addons/node-red" ]; then
+            cd addons/node-red
+          else
+            cd hassio-addons/node-red
+          fi
           if git diff --quiet package.json package-lock.json; then
             echo "changes=false" >> $GITHUB_OUTPUT
           else
@@ -46,6 +76,16 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add hassio-addons/node-red/package.json hassio-addons/node-red/package-lock.json
+          
+          # 确定正确的路径用于提交
+          if [ -d "node-red" ]; then
+            FILE_PATH="node-red"
+          elif [ -d "addons/node-red" ]; then
+            FILE_PATH="addons/node-red"
+          else
+            FILE_PATH="hassio-addons/node-red"
+          fi
+          
+          git add $FILE_PATH/package.json $FILE_PATH/package-lock.json
           git commit -m "Auto-update Node-RED packages to latest versions"
           git push
