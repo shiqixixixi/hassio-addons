@@ -16,14 +16,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18.x
-          cache: 'npm'
-          # 移除显式路径，让工具自动搜索锁文件
-          # 解决找不到锁文件的错误
+          # 完全禁用缓存，避免锁文件检查
+          cache: ''
 
       - name: Install dependencies and generate lock file
         run: |
           cd hassio-addons/node-red
-          # 安装依赖并生成package-lock.json（如果不存在）
           npm install --package-lock-only
 
       - name: Update packages to latest versions
