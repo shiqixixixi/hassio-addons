@@ -17,20 +17,20 @@ jobs:
         with:
           node-version: 18.x
           cache: 'npm'
+          # 移除显式路径，让工具自动搜索锁文件
+          # 解决找不到锁文件的错误
 
-      - name: Install dependencies
+      - name: Install dependencies and generate lock file
         run: |
           cd hassio-addons/node-red
-          npm install
+          # 安装依赖并生成package-lock.json（如果不存在）
+          npm install --package-lock-only
 
       - name: Update packages to latest versions
         run: |
           cd hassio-addons/node-red
-          # 安装 npm-check-updates 工具
           npm install -g npm-check-updates
-          # 更新依赖到最新版本（遵循 semver）
           ncu -u
-          # 重新安装以更新 package-lock.json
           npm install --package-lock-only
 
       - name: Check for changes
