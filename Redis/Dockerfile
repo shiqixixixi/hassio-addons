@@ -8,8 +8,9 @@ RUN apk add --no-cache bash jq gosu \
     && mkdir -p /data /opt/redis /tmp/redis \
     && chmod -R 777 /data /opt/redis /tmp/redis
 
-# 复制配置和脚本到正确的位置
-COPY redis.conf /redis.conf
+# 创建配置目录并复制配置和脚本
+RUN mkdir -p /etc/redis
+COPY redis.conf /etc/redis/redis.conf
 COPY run.sh /run.sh
 # 确保脚本权限正确，允许执行
 RUN chmod +x /run.sh

@@ -84,7 +84,7 @@ echo "AOF持久化: ${APPENDONLY,,}"
 echo "密码保护: ${REQUIRE_PASS:-(无密码)}"
 
 # 直接使用标准配置文件，通过命令行参数设置密码（如果有）
-REDIS_CONF="/redis.conf"
+REDIS_CONF="/etc/redis/redis.conf"
 
 # 直接以当前用户启动Redis，避免用户切换问题
 echo "以当前用户启动Redis服务器"
@@ -97,12 +97,15 @@ else
 fi
 echo "转换AOF持久化设置: 输入=$APPENDONLY, 输出=$REDIS_APPENDONLY"
 
-# 构建启动命令，根据是否有密码调整参数
+# 确保/tmp目录存在并可写
+mkdir -p /tmp
+
+# 构建启动命令，根据是否有密码调整参数，添加--loadmodule ""避免模块配置错误
 if [ -n "$REQUIRE_PASS" ]; then
   echo "将通过命令行参数设置Redis密码"
-  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "$REDIS_APPENDONLY" --requirepass "$REQUIRE_PASS" &
+  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "$REDIS_APPENDONLY" --requirepass "$REQUIRE_PASS" --loadmodule "" &
 else
-  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "$REDIS_APPENDONLY" &
+  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "$REDIS_APPENDONLY" --loadmodule "" &
 fi
 
 REDIS_PID=$!
@@ -117,6 +120,16 @@ echo "Redis服务器已启动，PID: $REDIS_PID"
 echo "密码设置: ${REQUIRE_PASS:-(无密码)}"
 echo "配置已应用，Redis服务器正在运行"
 
-# 保持前台运行，不退出脚本
-trap "kill -INT $REDIS_PID" INT
-wait "$REDIS_PID" || exit $?
+# 增强信号处理
+trap "echo '收到停止信号，优雅关闭Redis...'; kill -INT $REDIS_PID; wait $REDIS_PID; exit 0" SIGINT SIGTERM
+
+# 监控Redis进程，确保正确处理退出状态
+wait "$REDIS_PID"
+EXIT_CODE=$?
+
+echo "Redis服务器已停止，退出码: $EXIT_CODE"
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "警告: Redis服务器异常退出，请检查日志" 1>&2
+fi
+
+exit $EXIT_CODE
