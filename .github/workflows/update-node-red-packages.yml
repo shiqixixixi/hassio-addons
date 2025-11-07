@@ -31,9 +31,9 @@ jobs:
             fi
           done
           
-          # 打印 package.json 完整内容（便于调试）
-          echo -e "\n=== package.json content ==="
-          cat node-red/package.json
+          # 打印 package.json 中依赖相关字段（便于调试）
+          echo -e "\n=== package.json dependencies/devDependencies ==="
+          cat node-red/package.json | grep -E '"dependencies"|'"node-red"|'"devDependencies"|'"peerDependencies"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -49,62 +49,56 @@ jobs:
           ncu -u
           npm install --package-lock-only
 
-      - name: Extract Node-RED version (multi-fallback strategy)
+      - name: Extract Node-RED version (node 原生 JSON 解析，100% 容错)
         id: extract_version
         run: |
           cd node-red
-          NODE_RED_VERSION="unknown"
           
-          # 方案1：从 dependencies 提取（最优先）
-          echo "=== Trying to extract from dependencies ==="
-          NODE_RED_VERSION=$(grep -o '"node-red"\s*:\s*"[^"]*"' package.json | grep -o '"[^"]*"$' | sed 's/"//g')
+          # 核心：用 node 解析 JSON，支持任意格式，适配 dependencies/devDependencies/peerDependencies
+          NODE_RED_VERSION=$(node -e "
+            const fs = require('fs');
+            try {
+              const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+              // 优先从 dependencies 提取，其次 devDependencies，最后 peerDependencies
+              const version = pkg.dependencies?.['node-red'] || 
+                              pkg.devDependencies?.['node-red'] || 
+                              pkg.peerDependencies?.['node-red'] || 
+                              pkg.version ||  // 兜底：提取 package.json 自身版本（适用于源码仓库）
+                              'unknown';
+              console.log(version);
+            } catch (e) {
+              console.log('unknown');
+            }
+          ")
           
-          # 方案2：从 devDependencies 提取（方案1失败时）
-          if [ "$NODE_RED_VERSION" = "unknown" ] || [ -z "$NODE_RED_VERSION" ]; then
-            echo "=== Trying to extract from devDependencies ==="
-            NODE_RED_VERSION=$(grep -o '"node-red"\s*:\s*"[^"]*"' package.json | grep -o '"[^"]*"$' | sed 's/"//g')
-          fi
+          # 清理版本号：去除 ^/~ 符号、环境变量占位符（如 ${VERSION}）
+          NODE_RED_VERSION_CLEAN=$(echo "$NODE_RED_VERSION" | sed -E 's/^[^^~$\{\}]+//' | sed -E 's/\$\{.*\}//g')
           
-          # 方案3：提取 package.json 自身的 version 字段（适用于 Node-RED 源码仓库）
-          if [ "$NODE_RED_VERSION" = "unknown" ] || [ -z "$NODE_RED_VERSION" ]; then
-            echo "=== Trying to extract from package.json version ==="
-            NODE_RED_VERSION=$(grep -o '"version"\s*:\s*"[^"]*"' package.json | grep -o '"[^"]*"$' | sed 's/"//g')
-          fi
-          
-          # 方案4：使用 npm list 命令提取（最可靠的兜底方案）
-          if [ "$NODE_RED_VERSION" = "unknown" ] || [ -z "$NODE_RED_VERSION" ]; then
-            echo "=== Trying to extract via npm list ==="
-            NODE_RED_VERSION=$(npm list node-red --depth 0 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-          fi
-          
-          # 最终清理版本号（去除 ^/~ 符号）
-          NODE_RED_VERSION_CLEAN=$(echo "$NODE_RED_VERSION" | sed 's/^[^^~]*//')
-          
-          # 终极容错：如果所有方案都失败，设置默认版本（避免空值）
+          # 终极兜底：确保版本号非空
           if [ -z "$NODE_RED_VERSION_CLEAN" ] || [ "$NODE_RED_VERSION_CLEAN" = "unknown" ]; then
             echo "WARNING: All extraction methods failed! Using default version."
-            NODE_RED_VERSION_CLEAN="1.0.0"  # 可根据实际情况修改默认值
+            NODE_RED_VERSION_CLEAN="3.10.0"  # 可根据实际场景修改默认值（建议设为你当前使用的版本）
           fi
           
           echo "=== Extracted Node-RED version: $NODE_RED_VERSION_CLEAN ==="
           echo "NODE_RED_VERSION=$NODE_RED_VERSION_CLEAN" >> $GITHUB_ENV
 
-      - name: Update version in config.yaml (guaranteed non-empty)
+      - name: Update version in config.yaml (确保非空)
         run: |
           CONFIG_PATH="./node-red/config.yaml"
           
-          # 强制检查版本号非空
+          # 双重保险：检查版本号非空
           if [ -z "$NODE_RED_VERSION" ]; then
-            echo "ERROR: Node-RED version is empty!"
+            echo "ERROR: Node-RED version is empty! Terminating workflow."
             exit 1
           fi
           
-          # 替换 config.yaml 中的版本号（兼容多种字段名，强制写入非空值）
-          sed -i "s/^\(node_red_version:\|version:\|node-red-version:\|app_version:\).*/\1 $NODE_RED_VERSION/" "$CONFIG_PATH"
+          # 替换 config.yaml 中的版本号（兼容常见字段名，可根据实际添加）
+          sed -i "s/^\(node_red_version:\|version:\|node-red-version:\|app_version:\|node_red-ver:\).*/\1 $NODE_RED_VERSION/" "$CONFIG_PATH"
           
-          # 验证替换结果
-          echo -e "\n=== config.yaml updated content ==="
-          grep -E 'node_red_version:|version:|node-red-version:|app_version:' "$CONFIG_PATH"
+          # 验证替换结果（日志中查看是否成功）
+          echo -e "\n=== config.yaml updated version ==="
+          grep -E 'node_red_version:|version:|node-red-version:|app_version:|node_red-ver:' "$CONFIG_PATH"
 
       - name: Check for changes
         id: check_changes
