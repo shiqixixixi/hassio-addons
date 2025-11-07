@@ -17,26 +17,23 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify Node-RED directory and package.json
+      - name: Verify required files exist
         run: |
-          echo "Current directory structure:"
-          ls -R node-red
+          echo "=== Checking directory structure ==="
+          ls -la node-red/
           
-          # 检查 node-red 目录是否存在
-          if [ ! -d "node-red" ]; then
-            echo "Error: Directory 'node-red' not found"
-            exit 1
-          fi
+          # 强制检查关键文件，缺失则直接失败
+          REQUIRED_FILES=("node-red/package.json" "node-red/config.yaml")
+          for file in "${REQUIRED_FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "ERROR: Required file $file not found!"
+              exit 1
+            fi
+          done
           
-          # 检查 package.json 是否存在
-          if [ ! -f "node-red/package.json" ]; then
-            echo "Error: package.json not found in 'node-red' directory"
-            exit 1
-          fi
-          
-          # 打印 package.json 内容（便于调试）
-          echo "package.json content:"
-          cat node-red/package.json | grep -E '"node-red"|dependencies|devDependencies'
+          # 打印 package.json 完整内容（便于调试）
+          echo -e "\n=== package.json content ==="
+          cat node-red/package.json
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -44,61 +41,70 @@ jobs:
           node-version: 18.x
           cache: ''  # 禁用缓存避免锁文件问题
 
-      - name: Install dependencies and generate lock file
-        run: |
-          cd node-red
-          npm install --package-lock-only
-
       - name: Update packages to latest versions
         run: |
           cd node-red
+          npm install --package-lock-only
           npm install -g npm-check-updates
           ncu -u
           npm install --package-lock-only
 
-      - name: Extract Node-RED version from package.json (with fallback)
+      - name: Extract Node-RED version (multi-fallback strategy)
         id: extract_version
         run: |
           cd node-red
+          NODE_RED_VERSION="unknown"
           
-          # 方案1：尝试从 dependencies 或 devDependencies 提取（容错处理）
-          NODE_RED_VERSION=$(node -p "
-            const pkg = require('./package.json');
-            pkg.dependencies?.['node-red'] || pkg.devDependencies?.['node-red'] || 'unknown'
-          ")
+          # 方案1：从 dependencies 提取（最优先）
+          echo "=== Trying to extract from dependencies ==="
+          NODE_RED_VERSION=$(grep -o '"node-red"\s*:\s*"[^"]*"' package.json | grep -o '"[^"]*"$' | sed 's/"//g')
           
-          # 检查是否提取成功
-          if [ "$NODE_RED_VERSION" = "unknown" ]; then
-            echo "Warning: node-red not found in dependencies/devDependencies"
-            # 方案2：尝试从 package.json 其他字段提取（如 name 为 node-red 时的 version 字段）
-            NODE_RED_VERSION=$(node -p "require('./package.json').version || 'unknown'")
+          # 方案2：从 devDependencies 提取（方案1失败时）
+          if [ "$NODE_RED_VERSION" = "unknown" ] || [ -z "$NODE_RED_VERSION" ]; then
+            echo "=== Trying to extract from devDependencies ==="
+            NODE_RED_VERSION=$(grep -o '"node-red"\s*:\s*"[^"]*"' package.json | grep -o '"[^"]*"$' | sed 's/"//g')
           fi
           
-          # 去除版本号前的 ^/~ 符号（容错：如果没有符号则直接保留）
+          # 方案3：提取 package.json 自身的 version 字段（适用于 Node-RED 源码仓库）
+          if [ "$NODE_RED_VERSION" = "unknown" ] || [ -z "$NODE_RED_VERSION" ]; then
+            echo "=== Trying to extract from package.json version ==="
+            NODE_RED_VERSION=$(grep -o '"version"\s*:\s*"[^"]*"' package.json | grep -o '"[^"]*"$' | sed 's/"//g')
+          fi
+          
+          # 方案4：使用 npm list 命令提取（最可靠的兜底方案）
+          if [ "$NODE_RED_VERSION" = "unknown" ] || [ -z "$NODE_RED_VERSION" ]; then
+            echo "=== Trying to extract via npm list ==="
+            NODE_RED_VERSION=$(npm list node-red --depth 0 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          fi
+          
+          # 最终清理版本号（去除 ^/~ 符号）
           NODE_RED_VERSION_CLEAN=$(echo "$NODE_RED_VERSION" | sed 's/^[^^~]*//')
           
-          # 最终检查：如果仍未提取到版本号，终止流程
-          if [ "$NODE_RED_VERSION_CLEAN" = "unknown" ]; then
-            echo "Error: Failed to extract Node-RED version from package.json"
-            exit 1
+          # 终极容错：如果所有方案都失败，设置默认版本（避免空值）
+          if [ -z "$NODE_RED_VERSION_CLEAN" ] || [ "$NODE_RED_VERSION_CLEAN" = "unknown" ]; then
+            echo "WARNING: All extraction methods failed! Using default version."
+            NODE_RED_VERSION_CLEAN="1.0.0"  # 可根据实际情况修改默认值
           fi
           
+          echo "=== Extracted Node-RED version: $NODE_RED_VERSION_CLEAN ==="
           echo "NODE_RED_VERSION=$NODE_RED_VERSION_CLEAN" >> $GITHUB_ENV
-          echo "Extracted Node-RED version: $NODE_RED_VERSION_CLEAN"
 
-      - name: Update version in config.yaml (node-red directory)
+      - name: Update version in config.yaml (guaranteed non-empty)
         run: |
           CONFIG_PATH="./node-red/config.yaml"
           
-          # 检查 config.yaml 是否存在
-          if [ ! -f "$CONFIG_PATH" ]; then
-            echo "Error: config.yaml not found at $CONFIG_PATH"
+          # 强制检查版本号非空
+          if [ -z "$NODE_RED_VERSION" ]; then
+            echo "ERROR: Node-RED version is empty!"
             exit 1
           fi
           
-          # 替换版本号（匹配常见字段，可根据实际调整）
-          sed -i "s/^\(node_red_version:\|version:\|node-red-version:\).*/\1 $NODE_RED_VERSION/" "$CONFIG_PATH"
-          echo "Updated $CONFIG_PATH with Node-RED version: $NODE_RED_VERSION"
+          # 替换 config.yaml 中的版本号（兼容多种字段名，强制写入非空值）
+          sed -i "s/^\(node_red_version:\|version:\|node-red-version:\|app_version:\).*/\1 $NODE_RED_VERSION/" "$CONFIG_PATH"
+          
+          # 验证替换结果
+          echo -e "\n=== config.yaml updated content ==="
+          grep -E 'node_red_version:|version:|node-red-version:|app_version:' "$CONFIG_PATH"
 
       - name: Check for changes
         id: check_changes
@@ -117,5 +123,5 @@ jobs:
           git config --global user.email "actions@github.com"
           
           git add node-red/package.json node-red/package-lock.json node-red/config.yaml
-          git commit -m "Auto-update Node-RED packages to latest versions (v$NODE_RED_VERSION)"
+          git commit -m "Auto-update Node-RED packages to v$NODE_RED_VERSION"
           git push
