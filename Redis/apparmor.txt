@@ -1,57 +1,113 @@
 #include <tunables/global>
 
-profile example flags=(attach_disconnected,mediate_deleted) {
+profile redis flags=(attach_disconnected,mediate_deleted) {
   #include <abstractions/base>
 
   # Capabilities
+  capability ipc_lock,
+  capability setgid,
+  capability setuid,
   file,
   signal (send) set=(kill,term,int,hup,cont),
 
-  # S6-Overlay
-  /init ix,
-  /bin/** ix,
-  /usr/bin/** ix,
-  /run/{s6,s6-rc*,service}/** ix,
-  /package/** ix,
-  /command/** ix,
-  /etc/services.d/** rwix,
-  /etc/cont-init.d/** rwix,
-  /etc/cont-finish.d/** rwix,
-  /run/{,**} rwk,
-  /dev/tty rw,
-
-  # Bashio
-  /usr/lib/bashio/** ix,
-  /tmp/** rwk,
-
+  # Redis addon needs full access to run.sh
+  /run.sh r,
+  /run.sh ix,
+  
   # Access to options.json and other files within your addon
   /data/** rw,
-
-  # Start new profile for service
-  /usr/bin/my_program cx -> my_program,
-
-  profile my_program flags=(attach_disconnected,mediate_deleted) {
+  /data/options.json r,
+  /data/redis/** rwk,
+  /opt/redis/** rwk,
+  /redis.conf r,
+  
+  # System utilities
+  /bin/bash rix,
+  /bin/echo ix,
+  /bin/cat ix,
+  /bin/ls ix,
+  /bin/mkdir ix,
+  /usr/bin/jq ix,
+  /usr/bin/gosu ix,
+  /usr/bin/redis-server ix,
+  /usr/bin/redis-cli ix,
+  
+  # System files
+  /etc/passwd r,
+  /etc/group r,
+  /etc/shadow r,
+  /etc/hosts r,
+  /etc/hostname r,
+  /etc/localtime r,
+  /etc/timezone r,
+  
+  # Network access
+  network tcp,
+  network udp,
+  
+  # Temp directories
+  /tmp/** rwk,
+  /var/tmp/** rwk,
+  /var/run/redis/** rwk,
+  
+  # Start new profile for Redis server
+  /usr/bin/redis-server cx -> redis_server,
+  
+  profile redis_server flags=(attach_disconnected,mediate_deleted) {
     #include <abstractions/base>
-
-    # Receive signals from S6-Overlay
-    signal (receive) peer=*_example,
-
-    # Access to options.json and other files within your addon
+    
+    # Capabilities for Redis
+    capability ipc_lock,
+    
+    # Receive signals
+    signal (receive) peer=redis,
+    
+    # Access to Redis data and configuration
     /data/** rw,
-
-    # Access to mapped volumes specified in config.json
-    /share/** rw,
-
-    # Access required for service functionality
-    # Note: List was built by doing the following:
-    # 1. Add what is obviously needed based on what is in the script
-    # 2. Add `complain` as a flag to this profile temporarily and run the addon
-    # 3. Review the audit log with `journalctl _TRANSPORT="audit" -g 'apparmor="ALLOWED"'` and add other access as needed
-    # Remember to remove the `complain` flag when you are done
-    /usr/bin/my_program r,
-    /bin/bash rix,
-    /bin/echo ix,
+    /data/redis/** rwk,
+    /opt/redis/** rwk,
+    /redis.conf r,
+    
+    # System utilities
+    /usr/bin/redis-server r,
+    /usr/bin/redis-server ix,
+    
+    # Network access for Redis
+    network tcp,
+    network udp,
+    
+    # Temp and runtime directories
+    /tmp/** rwk,
+    /var/tmp/** rwk,
+    /var/run/redis/** rwk,
+    
+    # System files
     /etc/passwd r,
-    /dev/tty rw,
+    /etc/group r,
+    /etc/localtime r,
+    /etc/timezone r,
+  }
+  
+  profile redis_cli flags=(attach_disconnected,mediate_deleted) {
+    #include <abstractions/base>
+    
+    # Capabilities
+    file,
+    
+    # Receive signals
+    signal (receive) peer=redis,
+    
+    # Access to Redis CLI
+    /usr/bin/redis-cli r,
+    /usr/bin/redis-cli ix,
+    
+    # Network access for Redis CLI
+    network tcp,
+    network udp,
+    
+    # System files
+    /etc/passwd r,
+    /etc/localtime r,
+    /etc/timezone r,
   }
 }
