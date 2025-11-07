@@ -1,4 +1,4 @@
-FROM redis:7.2.4-alpine
+FROM redis:alpine
 
 LABEL maintainer="1791539136@qq.com"
 LABEL description="Redis server for Home Assistant (HassOS Add-on)"

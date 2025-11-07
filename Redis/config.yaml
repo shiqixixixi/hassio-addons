@@ -1,5 +1,5 @@
 name: Redis
-version: "7.2.4"
+version: "latest"
 slug: redis_server
 description: A Redis server for Home Assistant, providing in-memory data storage.
 url: "https://github.com/shiqixixixi/hassio-addons"
