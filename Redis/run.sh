@@ -83,29 +83,25 @@ echo "内存限制: $MAX_MEMORY"
 echo "AOF持久化: ${APPENDONLY,,}"
 echo "密码保护: ${REQUIRE_PASS:-(无密码)}"
 
-# 尝试在配置文件中直接设置密码（如果有）
-if [ -n "$REQUIRE_PASS" ]; then
-  echo "在启动前配置Redis密码"
-  # 创建临时配置文件，包含密码设置
-  TEMP_CONF=$(mktemp)
-  cat /redis.conf > "$TEMP_CONF"
-  echo "requirepass $REQUIRE_PASS" >> "$TEMP_CONF"
-  echo "将使用临时配置文件: $TEMP_CONF"
-  REDIS_CONF="$TEMP_CONF"
-else
-  REDIS_CONF="/redis.conf"
-fi
+# 直接使用标准配置文件，通过命令行参数设置密码（如果有）
+REDIS_CONF="/redis.conf"
 
 # 直接以当前用户启动Redis，避免用户切换问题
 echo "以当前用户启动Redis服务器"
-redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "${APPENDONLY,,}" &
+
+# 构建启动命令，根据是否有密码调整参数
+if [ -n "$REQUIRE_PASS" ]; then
+  echo "将通过命令行参数设置Redis密码"
+  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "${APPENDONLY,,}" --requirepass "$REQUIRE_PASS" &
+else
+  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "${APPENDONLY,,}" &
+fi
+
 REDIS_PID=$!
 
 # 检查Redis是否启动成功
 if ! kill -0 "$REDIS_PID" 2>/dev/null; then
   echo "错误: Redis服务器启动失败，PID $REDIS_PID 不存在或已终止"
-  # 清理临时配置文件
-  [ -f "$TEMP_CONF" ] && rm -f "$TEMP_CONF"
   exit 1
 fi
 
