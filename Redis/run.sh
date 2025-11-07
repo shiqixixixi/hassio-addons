@@ -100,12 +100,18 @@ echo "转换AOF持久化设置: 输入=$APPENDONLY, 输出=$REDIS_APPENDONLY"
 # 确保/tmp目录存在并可写
 mkdir -p /tmp
 
-# 构建启动命令，根据是否有密码调整参数，添加--loadmodule ""避免模块配置错误
+# 显示内存overcommit警告信息（容器环境中无法直接修改）
+echo "⚠️ 警告: Redis建议启用内存overcommit"
+echo "⚠️ 这是容器环境限制，不影响正常使用"
+echo "⚠️ 如需解决此警告，请在宿主机上执行: sysctl vm.overcommit_memory=1"
+echo "⚠️ 或在宿主机的/etc/sysctl.conf中添加: vm.overcommit_memory = 1"
+
+# 构建启动命令，根据是否有密码调整参数
 if [ -n "$REQUIRE_PASS" ]; then
   echo "将通过命令行参数设置Redis密码"
-  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "$REDIS_APPENDONLY" --requirepass "$REQUIRE_PASS" --loadmodule "" &
+  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "$REDIS_APPENDONLY" --requirepass "$REQUIRE_PASS" &
 else
-  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "$REDIS_APPENDONLY" --loadmodule "" &
+  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "$REDIS_APPENDONLY" &
 fi
 
 REDIS_PID=$!
