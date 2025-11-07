@@ -47,11 +47,30 @@ jobs:
           ncu -u
           npm install --package-lock-only
 
+      - name: Extract Node-RED version from package.json
+        id: extract_version
+        run: |
+          # 进入 node-red 目录，提取 dependencies 或 devDependencies 中的 node-red 版本
+          cd node-red
+          NODE_RED_VERSION=$(node -p "require('./package.json').dependencies['node-red'] || require('./package.json').devDependencies['node-red']")
+          # 去除版本号前的 ^/~ 符号（如果有）
+          NODE_RED_VERSION_CLEAN=$(echo $NODE_RED_VERSION | sed 's/^[^^~]*//')
+          echo "NODE_RED_VERSION=$NODE_RED_VERSION_CLEAN" >> $GITHUB_ENV
+          echo "Extracted Node-RED version: $NODE_RED_VERSION_CLEAN"
+
+      - name: Update version in config.yaml
+        run: |
+          # 替换 config.yaml 中的 Node-RED 版本号（请根据实际字段名调整正则）
+          # 假设 config.yaml 中版本字段为 "node_red_version: x.x.x" 或 "version: x.x.x"
+          # 如需调整匹配规则，修改下面的正则表达式即可
+          sed -i "s/^\(node_red_version:\|version:\).*/\1 $NODE_RED_VERSION/" config.yaml
+          echo "Updated config.yaml with Node-RED version: $NODE_RED_VERSION"
+
       - name: Check for changes
         id: check_changes
         run: |
-          cd node-red
-          if git diff --quiet package.json package-lock.json; then
+          # 检查 package.json、package-lock.json、config.yaml 是否有变更
+          if git diff --quiet node-red/package.json node-red/package-lock.json config.yaml; then
             echo "changes=false" >> $GITHUB_OUTPUT
           else
             echo "changes=true" >> $GITHUB_OUTPUT
@@ -63,6 +82,6 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           
-          git add node-red/package.json node-red/package-lock.json
-          git commit -m "Auto-update Node-RED packages to latest versions"
+          git add node-red/package.json node-red/package-lock.json config.yaml
+          git commit -m "Auto-update Node-RED packages to latest versions (v$NODE_RED_VERSION)"
           git push
