@@ -28,13 +28,13 @@ ENV MQTT_ON=false
 
 
 RUN echo "session.save_handler = redis\n" >> /opt/docker/etc/php/php.webdevops.ini
-RUN echo "session.save_path = 'tcp://b1af8335-redis-tmp:6379?auth=123456'\n" >> /opt/docker/etc/php/php.webdevops.ini
+RUN echo "session.save_path = 'tcp://b1af8335-redis-server:6379?auth=123456'\n" >> /opt/docker/etc/php/php.webdevops.ini
 ##RUN echo "session.save_path = 'tcp://b1af8335-redis:6379?auth=123456'\n" >> /opt/docker/etc/php/php.webdevops.ini
 
 RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdevops.ini
 
-RUN sed -i 's/redis:6379/b1af8335-redis-tmp:6379/g' /app/push/ios.yml 
-RUN sed -i 's/redis:6379/b1af8335-redis-tmp:6379/g' /app/push/clip.yml
+RUN sed -i 's/redis:6379/b1af8335-redis-server:6379/g' /app/push/ios.yml 
+RUN sed -i 's/redis:6379/b1af8335-redis-server:6379/g' /app/push/clip.yml
 
 #RUN sed -i 's/redis:6379/b1af8335-redis:6379/g' /app/push/ios.yml 
 #RUN sed -i 's/redis:6379/b1af8335-redis:6379/g' /app/push/clip.yml
