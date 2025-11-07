@@ -60,12 +60,21 @@ echo "时区 (TZ): $TZ"
 echo "======================"
 
 # 3. 处理数据目录（确保存在）
-REDIS_DIR="/data/redis"
-if [ ! -d "$REDIS_DIR" ]; then
-  echo "使用备用目录 /opt/redis"
-  REDIS_DIR="/opt/redis"
+# 尝试多个可能的数据目录位置
+for dir_candidate in "/data/redis" "/opt/redis" "/tmp/redis"; do
+  if mkdir -p "$dir_candidate" && [ -w "$dir_candidate" ]; then
+    REDIS_DIR="$dir_candidate"
+    echo "选择数据目录: $REDIS_DIR"
+    break
+  fi
+done
+
+# 如果没有找到可写目录，使用当前目录作为最后的备选
+if [ -z "$REDIS_DIR" ]; then
+  REDIS_DIR="$(pwd)/redis"
+  mkdir -p "$REDIS_DIR"
+  echo "警告: 使用当前目录作为数据目录: $REDIS_DIR"
 fi
-mkdir -p "$REDIS_DIR"  # 强制创建目录，避免路径错误
 
 # 5. 启动Redis（动态指定目录）
 echo "启动Redis服务器，数据目录: $REDIS_DIR"
@@ -74,41 +83,36 @@ echo "内存限制: $MAX_MEMORY"
 echo "AOF持久化: ${APPENDONLY,,}"
 echo "密码保护: ${REQUIRE_PASS:-(无密码)}"
 
-# 确保数据目录存在且权限正确
-mkdir -p "$REDIS_DIR"
-chown -R redis:redis "$REDIS_DIR" 2>/dev/null || echo "警告: 无法更改数据目录权限，但将继续尝试启动"
-chmod -R 755 "$REDIS_DIR" 2>/dev/null || echo "警告: 无法设置数据目录权限，但将继续尝试启动"
-
-# 启动Redis服务器，使用redis用户运行以保证安全性
-# gosu比su更好，因为它正确处理信号传递
-if command -v gosu &> /dev/null; then
-  echo "使用gosu切换到redis用户启动Redis"
-  gosu redis redis-server /redis.conf --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "${APPENDONLY,,}" &
-  REDIS_PID=$!
-else
-  echo "警告: gosu不可用，将使用redis用户直接启动"
-  # 直接以redis用户启动
-  runuser -u redis -- redis-server /redis.conf --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "${APPENDONLY,,}" &
-  REDIS_PID=$!
-fi
-
-# 等待Redis启动
-sleep 2
-
-# 5. 设置密码（如果有）
+# 尝试在配置文件中直接设置密码（如果有）
 if [ -n "$REQUIRE_PASS" ]; then
-  echo "正在设置Redis密码..."
-  # 使用redis-cli设置密码
-  if redis-cli config set requirepass "$REQUIRE_PASS" >/dev/null 2>&1; then
-    echo "密码设置成功"
-  else
-    echo "警告: 密码设置失败，但Redis仍将继续运行"
-  fi
+  echo "在启动前配置Redis密码"
+  # 创建临时配置文件，包含密码设置
+  TEMP_CONF=$(mktemp)
+  cat /redis.conf > "$TEMP_CONF"
+  echo "requirepass $REQUIRE_PASS" >> "$TEMP_CONF"
+  echo "将使用临时配置文件: $TEMP_CONF"
+  REDIS_CONF="$TEMP_CONF"
 else
-  echo "未设置密码，Redis将以无密码模式运行"
+  REDIS_CONF="/redis.conf"
 fi
 
-# 6. 保持前台运行（HassOS要求）
+# 直接以当前用户启动Redis，避免用户切换问题
+echo "以当前用户启动Redis服务器"
+redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "${APPENDONLY,,}" &
+REDIS_PID=$!
+
+# 检查Redis是否启动成功
+if ! kill -0 "$REDIS_PID" 2>/dev/null; then
+  echo "错误: Redis服务器启动失败，PID $REDIS_PID 不存在或已终止"
+  # 清理临时配置文件
+  [ -f "$TEMP_CONF" ] && rm -f "$TEMP_CONF"
+  exit 1
+fi
+
 echo "Redis服务器已启动，PID: $REDIS_PID"
-# 使用wait命令等待Redis进程，确保容器不会退出
-wait $REDIS_PID
+echo "密码设置: ${REQUIRE_PASS:-(无密码)}"
+echo "配置已应用，Redis服务器正在运行"
+
+# 保持前台运行，不退出脚本
+trap "kill -INT $REDIS_PID" INT
+wait "$REDIS_PID" || exit $?

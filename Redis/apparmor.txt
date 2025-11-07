@@ -1,113 +1,36 @@
-#include <tunables/global>
-
-profile redis flags=(attach_disconnected,mediate_deleted) {
+# Redis Add-on AppArmor Profile - 简化版本
+profile redis {
+  # 基础权限
   #include <abstractions/base>
+  #include <abstractions/nameservice>
 
-  # Capabilities
-  capability ipc_lock,
-  capability setgid,
-  capability setuid,
-  file,
-  signal (send) set=(kill,term,int,hup,cont),
+  # 关键能力
+  capability dac_override,
+  capability net_bind_service,
 
-  # Redis addon needs full access to run.sh
-  /run.sh r,
+  # 宽松的文件访问权限
+  /data/** rwk,
+  /opt/** rwk,
+  /tmp/** rwk,
+  /etc/** r,
+  /lib/** mr,
+  /usr/** mr,
+  /proc/** r,
+  /dev/** r,
+
+  # 执行权限
   /run.sh ix,
-  
-  # Access to options.json and other files within your addon
-  /data/** rw,
-  /data/options.json r,
-  /data/redis/** rwk,
-  /opt/redis/** rwk,
-  /redis.conf r,
-  
-  # System utilities
-  /bin/bash rix,
-  /bin/echo ix,
-  /bin/cat ix,
-  /bin/ls ix,
-  /bin/mkdir ix,
+  /usr/bin/redis-server ixr,
+  /usr/bin/redis-cli ixr,
+  /bin/bash ix,
   /usr/bin/jq ix,
   /usr/bin/gosu ix,
-  /usr/bin/redis-server ix,
-  /usr/bin/redis-cli ix,
-  
-  # System files
-  /etc/passwd r,
-  /etc/group r,
-  /etc/shadow r,
-  /etc/hosts r,
-  /etc/hostname r,
-  /etc/localtime r,
-  /etc/timezone r,
-  
-  # Network access
+
+  # 网络访问
   network tcp,
   network udp,
-  
-  # Temp directories
-  /tmp/** rwk,
-  /var/tmp/** rwk,
-  /var/run/redis/** rwk,
-  
-  # Start new profile for Redis server
-  /usr/bin/redis-server cx -> redis_server,
-  
-  profile redis_server flags=(attach_disconnected,mediate_deleted) {
-    #include <abstractions/base>
-    
-    # Capabilities for Redis
-    capability ipc_lock,
-    
-    # Receive signals
-    signal (receive) peer=redis,
-    
-    # Access to Redis data and configuration
-    /data/** rw,
-    /data/redis/** rwk,
-    /opt/redis/** rwk,
-    /redis.conf r,
-    
-    # System utilities
-    /usr/bin/redis-server r,
-    /usr/bin/redis-server ix,
-    
-    # Network access for Redis
-    network tcp,
-    network udp,
-    
-    # Temp and runtime directories
-    /tmp/** rwk,
-    /var/tmp/** rwk,
-    /var/run/redis/** rwk,
-    
-    # System files
-    /etc/passwd r,
-    /etc/group r,
-    /etc/localtime r,
-    /etc/timezone r,
-  }
-  
-  profile redis_cli flags=(attach_disconnected,mediate_deleted) {
-    #include <abstractions/base>
-    
-    # Capabilities
-    file,
-    
-    # Receive signals
-    signal (receive) peer=redis,
-    
-    # Access to Redis CLI
-    /usr/bin/redis-cli r,
-    /usr/bin/redis-cli ix,
-    
-    # Network access for Redis CLI
-    network tcp,
-    network udp,
-    
-    # System files
-    /etc/passwd r,
-    /etc/localtime r,
-    /etc/timezone r,
-  }
+
+  # 允许所有子进程
+  /usr/bin/* ixr,
+  /bin/* ixr,
 }
