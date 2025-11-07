@@ -5,6 +5,7 @@ on:
     - cron: '0 0 * * 0'  # 每周日凌晨运行
   workflow_dispatch:  # 允许手动触发
 
+# 添加必要的权限配置
 permissions:
   contents: write  # 允许写入内容（推送代码）
 
@@ -15,25 +16,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          # 使用GitHub令牌解决权限问题
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify required files exist
+      - name: Verify Node-RED directory exists
         run: |
-          echo "=== Checking directory structure ==="
-          ls -la node-red/
+          echo "Current directory structure:"
+          ls -R
           
-          # 强制检查关键文件，缺失则直接失败
-          REQUIRED_FILES=("node-red/package.json" "node-red/config.yaml")
-          for file in "${REQUIRED_FILES[@]}"; do
-            if [ ! -f "$file" ]; then
-              echo "ERROR: Required file $file not found!"
-              exit 1
-            fi
-          done
-          
-          # 打印 package.json 中依赖相关字段（便于调试）
-          echo -e "\n=== package.json dependencies/devDependencies ==="
-          cat node-red/package.json | grep -E '"dependencies"|'"node-red"|'"devDependencies"|'"peerDependencies"
+          if [ ! -d "node-red" ]; then
+            echo "Error: Directory 'node-red' not found"
+            exit 1
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -41,70 +35,23 @@ jobs:
           node-version: 18.x
           cache: ''  # 禁用缓存避免锁文件问题
 
-      - name: Update packages to latest versions
+      - name: Install dependencies and generate lock file
         run: |
           cd node-red
           npm install --package-lock-only
+
+      - name: Update packages to latest versions
+        run: |
+          cd node-red
           npm install -g npm-check-updates
           ncu -u
           npm install --package-lock-only
 
-      - name: Extract Node-RED version (node 原生 JSON 解析，100% 容错)
-        id: extract_version
-        run: |
-          cd node-red
-          
-          # 核心：用 node 解析 JSON，支持任意格式，适配 dependencies/devDependencies/peerDependencies
-          NODE_RED_VERSION=$(node -e "
-            const fs = require('fs');
-            try {
-              const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-              // 优先从 dependencies 提取，其次 devDependencies，最后 peerDependencies
-              const version = pkg.dependencies?.['node-red'] || 
-                              pkg.devDependencies?.['node-red'] || 
-                              pkg.peerDependencies?.['node-red'] || 
-                              pkg.version ||  // 兜底：提取 package.json 自身版本（适用于源码仓库）
-                              'unknown';
-              console.log(version);
-            } catch (e) {
-              console.log('unknown');
-            }
-          ")
-          
-          # 清理版本号：去除 ^/~ 符号、环境变量占位符（如 ${VERSION}）
-          NODE_RED_VERSION_CLEAN=$(echo "$NODE_RED_VERSION" | sed -E 's/^[^^~$\{\}]+//' | sed -E 's/\$\{.*\}//g')
-          
-          # 终极兜底：确保版本号非空
-          if [ -z "$NODE_RED_VERSION_CLEAN" ] || [ "$NODE_RED_VERSION_CLEAN" = "unknown" ]; then
-            echo "WARNING: All extraction methods failed! Using default version."
-            NODE_RED_VERSION_CLEAN="3.10.0"  # 可根据实际场景修改默认值（建议设为你当前使用的版本）
-          fi
-          
-          echo "=== Extracted Node-RED version: $NODE_RED_VERSION_CLEAN ==="
-          echo "NODE_RED_VERSION=$NODE_RED_VERSION_CLEAN" >> $GITHUB_ENV
-
-      - name: Update version in config.yaml (确保非空)
-        run: |
-          CONFIG_PATH="./node-red/config.yaml"
-          
-          # 双重保险：检查版本号非空
-          if [ -z "$NODE_RED_VERSION" ]; then
-            echo "ERROR: Node-RED version is empty! Terminating workflow."
-            exit 1
-          fi
-          
-          # 替换 config.yaml 中的版本号（兼容常见字段名，可根据实际添加）
-          sed -i "s/^\(node_red_version:\|version:\|node-red-version:\|app_version:\|node_red-ver:\).*/\1 $NODE_RED_VERSION/" "$CONFIG_PATH"
-          
-          # 验证替换结果（日志中查看是否成功）
-          echo -e "\n=== config.yaml updated version ==="
-          grep -E 'node_red_version:|version:|node-red-version:|app_version:|node_red-ver:' "$CONFIG_PATH"
-
       - name: Check for changes
         id: check_changes
         run: |
-          CONFIG_PATH="./node-red/config.yaml"
-          if git diff --quiet node-red/package.json node-red/package-lock.json "$CONFIG_PATH"; then
+          cd node-red
+          if git diff --quiet package.json package-lock.json; then
             echo "changes=false" >> $GITHUB_OUTPUT
           else
             echo "changes=true" >> $GITHUB_OUTPUT
@@ -116,6 +63,6 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           
-          git add node-red/package.json node-red/package-lock.json node-red/config.yaml
-          git commit -m "Auto-update Node-RED packages to v$NODE_RED_VERSION"
-          git push
+          git add node-red/package.json node-red/package-lock.json
+          git commit -m "Auto-update Node-RED packages to latest versions"
+          git push 原来的功能不变，添加功能更新依赖文件版本后，更新config.yaml中的版本号为依赖中node-red的版本号
