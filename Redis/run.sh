@@ -89,12 +89,20 @@ REDIS_CONF="/redis.conf"
 # 直接以当前用户启动Redis，避免用户切换问题
 echo "以当前用户启动Redis服务器"
 
+# 将APPENDONLY转换为Redis期望的格式（yes/no）
+if [[ "${APPENDONLY,,}" == "true" || "${APPENDONLY,,}" == "yes" ]]; then
+  REDIS_APPENDONLY="yes"
+else
+  REDIS_APPENDONLY="no"
+fi
+echo "转换AOF持久化设置: 输入=$APPENDONLY, 输出=$REDIS_APPENDONLY"
+
 # 构建启动命令，根据是否有密码调整参数
 if [ -n "$REQUIRE_PASS" ]; then
   echo "将通过命令行参数设置Redis密码"
-  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "${APPENDONLY,,}" --requirepass "$REQUIRE_PASS" &
+  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "$REDIS_APPENDONLY" --requirepass "$REQUIRE_PASS" &
 else
-  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "${APPENDONLY,,}" &
+  redis-server "$REDIS_CONF" --dir "$REDIS_DIR" --maxmemory "$MAX_MEMORY" --appendonly "$REDIS_APPENDONLY" &
 fi
 
 REDIS_PID=$!
