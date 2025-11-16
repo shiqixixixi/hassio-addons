@@ -11,19 +11,20 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "https://mirrors.aliyun.com/alpine/v3.22/main/" > /etc/apk/repositories && \
     echo "https://mirrors.aliyun.com/alpine/v3.22/community/" >> /etc/apk/repositories && \
     apk add --no-cache --virtual .build-dependencies \
-        build-base \
-        linux-headers \
-        py3-pip \
-        python3-dev \
+        build-base=0.5-r3 \
+        linux-headers=6.14.2-r0 \
+        py3-pip=25.1.1-r0 \
+        python3-dev=3.12.12-r0 \
+    \
     && apk add --no-cache \
-        git \
-        icu-data-full \
-        nginx \
-        nodejs \
-        npm \
-        openssh-client \
-        patch \
-    && npm config set registry https://registry.npmmirror.com \
+        git=2.49.1-r0 \
+        icu-data-full=76.1-r1 \
+        nginx=1.28.0-r3 \
+        nodejs=22.16.0-r2 \
+        npm=11.3.0-r1 \
+        openssh-client=10.0_p1-r9 \
+        patch=2.8-r0 \
+    \
     && npm install \
         --no-audit \
         --no-fund \
@@ -31,18 +32,22 @@ RUN echo "https://mirrors.aliyun.com/alpine/v3.22/main/" > /etc/apk/repositories
         --omit=dev \
         --unsafe-perm \
     && npm rebuild --build-from-source @serialport/bindings-cpp \
+    \
     && npm cache clear --force \
+    \
     && echo -e "StrictHostKeyChecking no" >> /etc/ssh/ssh_config \
-    && if [ ! -f "/tmp/node-red-dashboard-show-dashboard.patch" ]; then \
-        echo "Error: Patch file not found!"; exit 1; \
-      fi \
-    && if [ ! -d "/opt/node_modules/node-red-dashboard" ]; then \
-        echo "Error: node-red-dashboard not installed!"; exit 1; \
-      fi \
-    && patch -f -d /opt/node_modules/node-red-dashboard -p1 \
-         -i /tmp/node-red-dashboard-show-dashboard.patch || true \
+    \
+    && patch -d /opt/node_modules/node-red-dashboard -p1 \
+             -i /tmp/node-red-dashboard-show-dashboard.patch \
+    \
     && apk del --no-cache --purge .build-dependencies \
-    && rm -fr /etc/nginx /root/.cache /root/.npm /root/.nrpmrc /tmp/*
+    && rm -fr \
+        /etc/nginx \
+        /root/.cache \
+        /root/.npm \
+        /root/.nrpmrc \
+        /tmp/*
+
 
 COPY rootfs /
 
