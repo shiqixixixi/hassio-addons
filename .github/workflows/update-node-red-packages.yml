@@ -65,4 +65,4 @@ jobs:
           
           git add node-red/package.json node-red/package-lock.json
           git commit -m "Auto-update Node-RED packages to latest versions"
-          git push 原来的功能不变，添加功能更新依赖文件版本后，更新config.yaml中的版本号为依赖中node-red的版本号
+          git push
