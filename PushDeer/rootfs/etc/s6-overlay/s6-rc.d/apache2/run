@@ -10,16 +10,45 @@
 # First, delete any existing httpd.conf file to start fresh
 rm -f /etc/apache2/httpd.conf
 
-# Create a brand new httpd.conf that doesn't load any modules manually
-# Apache will automatically load the necessary modules
-cat > /etc/apache2/httpd.conf << 'EOF'
+# Find the correct module directory for Apache modules
+# Try multiple possible locations common in Alpine Linux
+POSSIBLE_MODULE_DIRS=("/usr/lib/apache2/modules" "/usr/lib/modules/apache2" "/usr/modules")
+MODULE_DIR=""
+
+for dir in "${POSSIBLE_MODULE_DIRS[@]}"; do
+    if [ -d "$dir" ] && [ -f "$dir/mod_mpm_prefork.so" ]; then
+        MODULE_DIR="$dir"
+        break
+    fi
+done
+
+# If we couldn't find a directory with mod_mpm_prefork.so, use the first possible directory
+if [ -z "$MODULE_DIR" ]; then
+    MODULE_DIR="${POSSIBLE_MODULE_DIRS[0]}"
+fi
+
+echo "Using module directory: $MODULE_DIR"
+
+# Create a proper httpd.conf with the correct module paths
+cat > /etc/apache2/httpd.conf << EOF
 # Apache HTTP Server Configuration File
 ServerRoot "/usr"
 Listen 80
 ServerName localhost
 
-# Don't load any modules manually - Apache will load them automatically
-# based on the modules available in the system
+# Load MPM module - required for Apache 2.4+
+# For PHP, mpm_prefork is recommended
+LoadModule mpm_prefork_module $MODULE_DIR/mod_mpm_prefork.so
+
+# Load basic modules needed for web serving
+LoadModule dir_module $MODULE_DIR/mod_dir.so
+LoadModule mime_module $MODULE_DIR/mod_mime.so
+LoadModule unixd_module $MODULE_DIR/mod_unixd.so
+LoadModule authz_core_module $MODULE_DIR/mod_authz_core.so
+LoadModule log_config_module $MODULE_DIR/mod_log_config.so
+
+# Load PHP module
+LoadModule php_module $MODULE_DIR/libphp83.so
 
 # Basic server configuration
 DocumentRoot "/app/public"
@@ -29,7 +58,7 @@ Group apache
 # Security settings
 <Directory />
     AllowOverride None
-    Require all denied
+    Require all granted
 </Directory>
 
 # Document root configuration
