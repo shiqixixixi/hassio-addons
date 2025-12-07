@@ -91,17 +91,27 @@ cd /app && php artisan migrate --force
 # Seed database if needed
 cd /app && php artisan db:seed --force 2>/dev/null || true
 
-# Set permissions
-chown -R apache:apache /app/storage
-chmod -R 755 /app/storage
-chown -R apache:apache /app/bootstrap/cache
-chmod -R 755 /app/bootstrap/cache
+# Set permissions - use www-data user for webdevops/php-apache image
+chown -R www-data:www-data /app/storage
+chmod -R 777 /app/storage
+chown -R www-data:www-data /app/bootstrap/cache
+chmod -R 777 /app/bootstrap/cache
 
 # Configure PHP session to use Redis
-cat > /etc/php83/conf.d/redis-session.ini << EOF
+# For webdevops/php-apache image, use the correct PHP configuration path
+if [ -d /opt/docker/etc/php ]; then
+    cat > /opt/docker/etc/php/php.webdevops.ini << EOF
 session.save_handler = redis
 session.save_path = "tcp://${REDIS_HOST}:${REDIS_PORT}"
 session.gc_maxlifetime = 259200
 EOF
+else
+    # Fallback for other images
+    cat > /etc/php83/conf.d/redis-session.ini << EOF
+session.save_handler = redis
+session.save_path = "tcp://${REDIS_HOST}:${REDIS_PORT}"
+session.gc_maxlifetime = 259200
+EOF
+fi
 
 exit 0

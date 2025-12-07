@@ -61,10 +61,20 @@ services:
 EOF
 
 # Make gorush executable if it exists
-if [ -f /app/push/gorush-with-mipush/gorush ]; then
-    chmod +x /app/push/gorush-with-mipush/gorush
+# Check multiple possible locations for gorush
+gorush_path=""
+if [ -f /data/gorush ]; then
+    gorush_path="/data/gorush"
+elif [ -f /app/push/gorush-with-mipush/gorush ]; then
+    gorush_path="/app/push/gorush-with-mipush/gorush"
+elif [ -f /app/push/gorush ]; then
+    gorush_path="/app/push/gorush"
+fi
+
+if [ -n "$gorush_path" ]; then
+    chmod +x "$gorush_path"
     # Start gorush for iOS
-    exec /app/push/gorush-with-mipush/gorush -c /app/push/ios.yml
+    exec "$gorush_path" -c /app/push/ios.yml
 else
     # If gorush doesn't exist, just sleep
     echo "gorush not found, sleeping..."
