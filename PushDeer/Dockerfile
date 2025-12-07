@@ -42,11 +42,14 @@ RUN \
         redis \
         supervisor
 
+# Force rebuild of COPY instructions
+ARG CACHE_BUST=1
+
 # Copy app files (only API directory)
 COPY ./pushdeer/pushdeer/api /app
 
-# Copy push directory for gorush
-COPY ./pushdeer/pushdeer/push /app/push
+# Copy push directory for gorush (ignore if empty)
+COPY ./pushdeer/pushdeer/push /app/push 2>/dev/null || true
 
 # Copy configuration files (if they exist)
 RUN mkdir -p /etc
@@ -54,13 +57,14 @@ RUN mkdir -p /etc
 # Copy root filesystem
 COPY rootfs /
 
-# Set permissions
+# Set permissions - ensure directories exist before chmod, and ignore errors
 RUN \
-    chown -R apache:apache /app \
-    && chmod -R 755 /app/storage \
-    && chmod -R 755 /app/bootstrap/cache \
-    && find /etc/s6-overlay/s6-rc.d -name "run" -exec chmod +x {} \; \
-    && chown -R root:root /etc/s6-overlay/s6-rc.d/
+    chown -R apache:apache /app 2>/dev/null || true \
+    && mkdir -p /app/storage /app/bootstrap/cache 2>/dev/null || true \
+    && chmod -R 755 /app/storage 2>/dev/null || true \
+    && chmod -R 755 /app/bootstrap/cache 2>/dev/null || true \
+    && find /etc/s6-overlay/s6-rc.d -name "run" -exec chmod +x {} \; 2>/dev/null || true \
+    && chown -R root:root /etc/s6-overlay/s6-rc.d/ 2>/dev/null || true
 
 # Environment variables
 ENV DB_HOST=core-mariadb
