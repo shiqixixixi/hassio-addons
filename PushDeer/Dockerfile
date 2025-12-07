@@ -42,8 +42,11 @@ RUN \
         redis \
         supervisor
 
-# Copy app files
-COPY ./pushdeer/pushdeer /app
+# Copy app files (only API directory)
+COPY ./pushdeer/pushdeer/api /app
+
+# Copy push directory for gorush
+COPY ./pushdeer/pushdeer/push /app/push
 
 # Copy configuration files (if they exist)
 RUN mkdir -p /etc
