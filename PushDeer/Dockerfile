@@ -1,18 +1,56 @@
-#ARG BUILD_FROM
-#FROM $BUILD_FROM
-FROM webdevops/php-apache:8.0
-# 首先配置 vhost
-COPY ./pushdeer/pushdeer/docker/web/vhost.conf /opt/docker/etc/httpd/vhost.conf
-# COPY ./docker/web/web.vhost.conf /opt/docker/etc/httpd/vhost.common.d/
+ARG BUILD_FROM
+FROM $BUILD_FROM
 
-COPY ./pushdeer/pushdeer/docker/web/init.sh /opt/docker/provision/entrypoint.d/
-#CMD chmod +x /opt/docker/provision/entrypoint.d/init.sh
+# 安装必要的依赖
+RUN apk add --no-cache \
+    php8 \
+    php8-apache2 \
+    php8-mysqli \
+    php8-pdo \
+    php8-pdo_mysql \
+    php8-redis \
+    php8-session \
+    php8-json \
+    php8-openssl \
+    php8-curl \
+    php8-gd \
+    php8-mbstring \
+    php8-tokenizer \
+    php8-xml \
+    php8-zip \
+    redis \
+    supervisor \
+    cron \
+    bash
 
+# 配置Apache
+RUN sed -i 's/Listen 80/Listen 80/g' /etc/apache2/httpd.conf && \
+    sed -i 's/#LoadModule rewrite_module/LoadModule rewrite_module/g' /etc/apache2/httpd.conf && \
+    sed -i 's/#LoadModule session_module/LoadModule session_module/g' /etc/apache2/httpd.conf && \
+    sed -i 's/#LoadModule session_cookie_module/LoadModule session_cookie_module/g' /etc/apache2/httpd.conf && \
+    sed -i 's/#LoadModule session_crypto_module/LoadModule session_crypto_module/g' /etc/apache2/httpd.conf && \
+    sed -i 's/#LoadModule session_dbd_module/LoadModule session_dbd_module/g' /etc/apache2/httpd.conf
+
+# 设置工作目录
 WORKDIR /app
-COPY ./pushdeer/pushdeer /app
-#COPY ./app /app
-#RUN chmod +x /app
 
+# 复制应用程序文件
+COPY ./pushdeer/pushdeer /app
+
+# 复制配置文件
+COPY ./pushdeer/pushdeer/docker/web/vhost.conf /etc/apache2/conf.d/
+COPY ./pushdeer/pushdeer/docker/web/init.sh /etc/init.d/
+RUN chmod +x /etc/init.d/init.sh
+
+# 复制supervisor配置
+COPY ./pushdeer/pushdeer/docker/web/supervisord-ios.conf /etc/supervisor.d/push-ios.ini
+COPY ./pushdeer/pushdeer/docker/web/supervisord-clip.conf /etc/supervisor.d/push-clip.ini
+
+# 复制gorush
+COPY ./pushdeer/pushdeer/docker/web/gorush /usr/local/bin/
+RUN chmod +x /usr/local/bin/gorush
+
+# 配置环境变量
 ENV DB_HOST=core-mariadb
 ENV DB_PORT=3306
 ENV DB_USERNAME=pushdeer
@@ -23,46 +61,28 @@ ENV GO_PUSH_IOS_CLIP_TOPIC=com.pushdeer.self.ios.Clip
 ENV APP_DEBUG=false
 ENV MQTT_API_KEY=9LKo3
 ENV MQTT_ON=false
-# 然后运行初始化脚本
-# https://dockerfile.readthedocs.io/en/latest/content/Customization/provisioning.html
 
+# 配置PHP会话
+RUN echo "session.save_handler = redis" >> /etc/php8/php.ini && \
+    echo "session.save_path = 'tcp://localhost:6379'" >> /etc/php8/php.ini && \
+    echo "session.gc_maxlifetime = 259200" >> /etc/php8/php.ini
 
-RUN echo "session.save_handler = redis\n" >> /opt/docker/etc/php/php.webdevops.ini
-RUN echo "session.save_path = 'tcp://b1af8335-redis-server:6379?auth=123456'\n" >> /opt/docker/etc/php/php.webdevops.ini
-##RUN echo "session.save_path = 'tcp://b1af8335-redis:6379?auth=123456'\n" >> /opt/docker/etc/php/php.webdevops.ini
+# 配置push配置文件
+RUN sed -i 's/redis:6379/localhost:6379/g' /app/push/ios.yml && \
+    sed -i 's/redis:6379/localhost:6379/g' /app/push/clip.yml && \
+    sed -i 's/password: ""/password: ""/g' /app/push/ios.yml && \
+    sed -i 's/password: ""/password: ""/g' /app/push/clip.yml
 
-RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdevops.ini
+# 配置cron
+COPY ./pushdeer/pushdeer/docker/web/larave-cron /etc/cron.d/
+RUN chmod +x /etc/cron.d/larave-cron
 
-RUN sed -i 's/redis:6379/b1af8335-redis-server:6379/g' /app/push/ios.yml 
-RUN sed -i 's/redis:6379/b1af8335-redis-server:6379/g' /app/push/clip.yml
+# 创建必要的目录
+RUN mkdir -p /var/log/supervisor /var/run/redis /app/storage/logs
 
-#RUN sed -i 's/redis:6379/b1af8335-redis:6379/g' /app/push/ios.yml 
-#RUN sed -i 's/redis:6379/b1af8335-redis:6379/g' /app/push/clip.yml
+# 设置权限
+RUN chown -R apache:apache /app && \
+    chmod -R 755 /app/storage
 
-RUN sed -i 's/password: ""/password: "123456"/g' /app/push/ios.yml
-RUN sed -i 's/password: ""/password: "123456"/g' /app/push/clip.yml
-
-RUN echo "if [ ! -S /data/log ]; then rm -f /data/log;" > /opt/docker/bin/service.d/syslog-ng.d/10-init.sh
-# ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
-
-#RUN mkdir /data
-COPY ./pushdeer/pushdeer/docker/web/gorush /home
-RUN chmod +x /home/gorush 
-
-#RUN mkdir /opt/docker/etc/supervisor.d
-ADD ./pushdeer/pushdeer/docker/web/supervisord-ios.conf /opt/docker/etc/supervisor.d/push-ios.conf
-ADD ./pushdeer/pushdeer/docker/web/supervisord-clip.conf /opt/docker/etc/supervisor.d/push-clip.conf
-
-RUN sed -i 's/data/home/g' /opt/docker/etc/supervisor.d/push-ios.conf
-RUN sed -i 's/data/home/g' /opt/docker/etc/supervisor.d/push-clip.conf
-
-RUN sed -i 's@dev/log@home/log@g' /etc/syslog-ng/syslog-ng.conf
-
-ADD ./pushdeer/pushdeer/docker/web/larave-cron /etc/cron.d
-RUN chmod +x /etc/cron.d/larave-cron 
-
-# 配置 https
-# 在本目录下创建ssl目录，放入证书（server.crt，server.key），然后去掉下一行的注释
-# ADD ssl /app/ssl
-
-EXPOSE 80
+# 启动命令
+CMD ["bash", "-c", "redis-server --daemonize yes && supervisord -c /etc/supervisord.conf && apachectl -D FOREGROUND"]
