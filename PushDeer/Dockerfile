@@ -45,8 +45,8 @@ RUN \
 # Copy app files
 COPY ./pushdeer/pushdeer /app
 
-# Copy configuration files
-COPY ./docker /etc
+# Copy configuration files (if they exist)
+RUN mkdir -p /etc
 
 # Copy root filesystem
 COPY rootfs /
