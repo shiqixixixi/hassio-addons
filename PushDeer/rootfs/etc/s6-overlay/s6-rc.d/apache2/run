@@ -8,17 +8,19 @@
 cat > /etc/apache2/httpd.conf << EOF
 ServerRoot "/usr"
 Listen 80
-Include /etc/apache2/conf.d/*.conf
-EOF
-
-# Create PHP configuration
-cat > /etc/apache2/conf.d/php.conf << EOF
+LoadModule mpm_prefork_module modules/mod_mpm_prefork.so
+LoadModule dir_module modules/mod_dir.so
+LoadModule mime_module modules/mod_mime.so
+LoadModule php_module /usr/lib/apache2/modules/libphp83.so
 <IfModule dir_module>
     DirectoryIndex index.php index.html
 </IfModule>
 AddType application/x-httpd-php .php
 AddType application/x-httpd-php-source .phps
 EOF
+
+# Remove any existing php83-module.conf if it exists
+rm -f /etc/apache2/conf.d/php83-module.conf
 
 # Create virtual host configuration
 cat > /etc/apache2/conf.d/vhost.conf << EOF
