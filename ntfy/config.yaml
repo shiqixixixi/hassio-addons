@@ -9,5 +9,7 @@ startup: application
 boot: auto
 ports:
   80/tcp: 8800
+map:
+  - config: /var/cache/ntfy
 ports_description:
   80/tcp: ntfy server port
