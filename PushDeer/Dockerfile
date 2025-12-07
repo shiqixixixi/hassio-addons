@@ -12,7 +12,11 @@ ARG CACHE_BUST=1
 
 # Install additional dependencies
 RUN \
-    apt-get update && apt-get install -y --no-install-recommends \
+    # Update apt sources to use archived Debian Buster repositories
+    echo "deb http://archive.debian.org/debian buster main contrib non-free" > /etc/apt/sources.list \
+    && echo "deb http://archive.debian.org/debian-security buster/updates main contrib non-free" >> /etc/apt/sources.list \
+    && apt-get -o Acquire::Check-Valid-Until=false update \
+    && apt-get install -y --no-install-recommends \
         git \
         mariadb-client \
         redis-tools \
