@@ -8,7 +8,6 @@
 cat > /etc/apache2/httpd.conf << EOF
 ServerRoot "/usr"
 Listen 80
-Include /etc/apache2/httpd.conf.d/*.conf
 Include /etc/apache2/conf.d/*.conf
 EOF
 
