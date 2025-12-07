@@ -4,37 +4,45 @@
 # Use Alpine Linux default Apache configuration
 # Just update the document root and enable PHP
 
-# Update document root in httpd.conf
+# Use Alpine Linux native Apache configuration
 cat > /etc/apache2/httpd.conf << EOF
 ServerRoot "/usr"
 Listen 80
-LoadModule mpm_prefork_module modules/mod_mpm_prefork.so
-LoadModule dir_module modules/mod_dir.so
-LoadModule mime_module modules/mod_mime.so
+
+# Load necessary modules from the correct path
+LoadModule dir_module /usr/lib/apache2/modules/mod_dir.so
+LoadModule mime_module /usr/lib/apache2/modules/mod_mime.so
 LoadModule php_module /usr/lib/apache2/modules/libphp83.so
+LoadModule unixd_module /usr/lib/apache2/modules/mod_unixd.so
+LoadModule authz_core_module /usr/lib/apache2/modules/mod_authz_core.so
+LoadModule log_config_module /usr/lib/apache2/modules/mod_log_config.so
+
+# Basic configuration
+ServerAdmin you@example.com
+ServerName localhost
+
+# Document root
+DocumentRoot "/app/public"
+
+# Directory settings
+<Directory "/app/public">
+    Options Indexes FollowSymLinks
+    AllowOverride All
+    Require all granted
+</Directory>
+
+# DirectoryIndex settings
 <IfModule dir_module>
     DirectoryIndex index.php index.html
 </IfModule>
+
+# PHP settings
 AddType application/x-httpd-php .php
 AddType application/x-httpd-php-source .phps
-EOF
 
-# Remove any existing php83-module.conf if it exists
-rm -f /etc/apache2/conf.d/php83-module.conf
-
-# Create virtual host configuration
-cat > /etc/apache2/conf.d/vhost.conf << EOF
-<VirtualHost *:80>
-    DocumentRoot "/app/public"
-    ServerName localhost
-    ErrorLog /proc/self/fd/2
-    CustomLog /proc/self/fd/1 combined
-    <Directory "/app/public">
-        Options Indexes FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
+# Log settings
+ErrorLog /proc/self/fd/2
+CustomLog /proc/self/fd/1 combined
 EOF
 
 # Start Apache
