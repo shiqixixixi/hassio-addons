@@ -1,7 +1,7 @@
 name: PushDeer
 version: 2.1
 slug: pushdeer_server
-description: PushDeer 是一个开源的无App推送服务，支持 iOS、Android、Mac 等多种客户端
+description: PushDeer
 arch:
   - armhf
   - armv7
@@ -12,40 +12,16 @@ startup: application
 boot: auto
 url: https://github.com/easychen/pushdeer
 host_network: false
-map:
-  - config:rw
-  - share
-  - ssl
 options:
-  db_host: core-mariadb
-  db_port: 3306
-  db_username: pushdeer
-  db_database: pushdeer
-  db_password: pushdeer
-  redis_host: localhost
-  redis_port: 6379
-  redis_password: ""
-  app_debug: false
-  mqtt_on: false
-  mqtt_api_key: 9LKo3
-  ssl: false
-  certfile: fullchain.pem
-  keyfile: privkey.pem
+  mqtt: {}
 schema:
-  db_host: str
-  db_port: int
-  db_username: str
-  db_database: str
-  db_password: str
-  redis_host: str
-  redis_port: int
-  redis_password: str
-  app_debug: bool
-  mqtt_on: bool
-  mqtt_api_key: str
-  ssl: bool
-  certfile: str
-  keyfile: str
+  mqtt:
+    server: str?
+    ca: str?
+    key: str?
+    cert: str?
+    user: str?
+    password: str?
 ports:
   '80/tcp': 8800
 ports_description:

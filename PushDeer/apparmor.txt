@@ -1,21 +1,27 @@
 #include <tunables/global>
 
-profile pushdeer_addon flags=(attach_disconnected,mediate_deleted) {
+profile portainer_addon flags=(attach_disconnected,mediate_deleted) {
   #include <abstractions/base>
 
-  # Capabilities
   capability,
   file,
   signal,
+  mount,
+  umount,
+  remount,
   network udp,
   network tcp,
   network dgram,
   network stream,
   network inet,
   network inet6,
+  network netlink raw,
   network unix dgram,
+  capability setgid,
+  capability setuid,
 
-  # S6-Overlay
+
+# S6-Overlay
   /init ix,
   /run/{s6,s6-rc*,service}/** ix,
   /package/** ix,
@@ -25,58 +31,29 @@ profile pushdeer_addon flags=(attach_disconnected,mediate_deleted) {
   /bin/** ix,
   /usr/bin/** ix,
   /usr/lib/bashio/** ix,
+  /etc/s6/** rix,
+  /run/s6/** rix,
   /etc/services.d/** rwix,
   /etc/cont-init.d/** rwix,
   /etc/cont-finish.d/** rwix,
+  /init rix,
+  /var/run/** mrwkl,
+  /var/run/ mrwkl,
+  /dev/i2c-1 mrwkl,
+  /dev/fuse mrwkl,
+  /dev/sda1 mrwkl,
+  /dev/sdb1 mrwkl,
+  /dev/nvme0 mrwkl,
+  /dev/nvme1 mrwkl,
+  /dev/mmcblk0p1 mrwkl,
 
-  # Bashio
-  /usr/lib/bashio/** ix,
-  /tmp/** rwk,
-
-  # Access to options.json and other files within your addon
+  # Data access
   /data/** rw,
-  /config/** rw,
-  /share/** rw,
-  /ssl/** rw,
 
-  # Apache and PHP
-  /etc/apache2/** rw,
-  /var/log/apache2/** rw,
-  /usr/sbin/httpd ix,
-  /usr/bin/php8 ix,
+  # suppress ptrace denials when using 'docker ps' or using 'ps' inside a container
+  ptrace (trace,read) peer=docker-default,
 
-  # Redis
-  /usr/bin/redis-server ix,
-  /var/run/redis/** rw,
-  /etc/redis/** rw,
-
-  # Supervisor
-  /usr/bin/supervisord ix,
-  /etc/supervisor.d/** rw,
-  /var/log/supervisor/** rw,
-
-  # Cron
-  /usr/sbin/crond ix,
-  /etc/cron.d/** rw,
-
-  # Gorush
-  /usr/local/bin/gorush ix,
-
-  # Application files
-  /app/** rw,
-
-  # Environment files
-  /etc/environment r,
-  /etc/php8/** rw,
-
-  # Network access
-  network inet tcp,
-  network inet udp,
-  network inet6 tcp,
-  network inet6 udp,
-
-  # Allow signal handling
-  signal (send) set=(kill,term,int,hup,cont),
-  signal (receive) peer=*,
+  # docker daemon confinement requires explict allow rule for signal
+  signal (receive) set=(kill,term) peer=/usr/bin/docker,
 
 }
