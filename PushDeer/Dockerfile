@@ -11,6 +11,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN \
     apk add --no-cache \
         apache2 \
+        busybox-cron \
         curl \
         git \
         mariadb-client \
@@ -55,6 +56,10 @@ RUN mkdir -p /etc
 
 # Create push directory if it doesn't exist
 RUN mkdir -p /app/push
+
+# Copy gorush binary
+COPY ./pushdeer/pushdeer/docker/web/gorush /data/gorush
+RUN chmod +x /data/gorush
 
 # Set permissions - ensure directories exist before chmod, and ignore errors
 RUN \

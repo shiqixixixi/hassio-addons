@@ -97,4 +97,11 @@ chmod -R 755 /app/storage
 chown -R apache:apache /app/bootstrap/cache
 chmod -R 755 /app/bootstrap/cache
 
+# Configure PHP session to use Redis
+cat > /etc/php83/conf.d/redis-session.ini << EOF
+session.save_handler = redis
+session.save_path = "tcp://${REDIS_HOST}:${REDIS_PORT}"
+session.gc_maxlifetime = 259200
+EOF
+
 exit 0

@@ -1,0 +1,4 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+
+exit 0
