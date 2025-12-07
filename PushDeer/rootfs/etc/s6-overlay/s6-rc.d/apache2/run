@@ -5,36 +5,36 @@
 cat > /etc/apache2/httpd.conf << EOF
 ServerRoot "/usr"
 Listen 80
-LoadModule mpm_prefork_module modules/mod_mpm_prefork.so
-LoadModule authn_file_module modules/mod_authn_file.so
-LoadModule authn_core_module modules/mod_authn_core.so
-LoadModule authz_host_module modules/mod_authz_host.so
-LoadModule authz_groupfile_module modules/mod_authz_groupfile.so
-LoadModule authz_user_module modules/mod_authz_user.so
-LoadModule authz_core_module modules/mod_authz_core.so
-LoadModule access_compat_module modules/mod_access_compat.so
-LoadModule auth_basic_module modules/mod_auth_basic.so
-LoadModule reqtimeout_module modules/mod_reqtimeout.so
-LoadModule filter_module modules/mod_filter.so
-LoadModule mime_module modules/mod_mime.so
-LoadModule log_config_module modules/mod_log_config.so
-LoadModule env_module modules/mod_env.so
-LoadModule headers_module modules/mod_headers.so
-LoadModule setenvif_module modules/mod_setenvif.so
-LoadModule version_module modules/mod_version.so
-LoadModule unixd_module modules/mod_unixd.so
-LoadModule status_module modules/mod_status.so
-LoadModule autoindex_module modules/mod_autoindex.so
+LoadModule mpm_prefork_module /usr/lib/apache2/modules/mod_mpm_prefork.so
+LoadModule authn_file_module /usr/lib/apache2/modules/mod_authn_file.so
+LoadModule authn_core_module /usr/lib/apache2/modules/mod_authn_core.so
+LoadModule authz_host_module /usr/lib/apache2/modules/mod_authz_host.so
+LoadModule authz_groupfile_module /usr/lib/apache2/modules/mod_authz_groupfile.so
+LoadModule authz_user_module /usr/lib/apache2/modules/mod_authz_user.so
+LoadModule authz_core_module /usr/lib/apache2/modules/mod_authz_core.so
+LoadModule access_compat_module /usr/lib/apache2/modules/mod_access_compat.so
+LoadModule auth_basic_module /usr/lib/apache2/modules/mod_auth_basic.so
+LoadModule reqtimeout_module /usr/lib/apache2/modules/mod_reqtimeout.so
+LoadModule filter_module /usr/lib/apache2/modules/mod_filter.so
+LoadModule mime_module /usr/lib/apache2/modules/mod_mime.so
+LoadModule log_config_module /usr/lib/apache2/modules/mod_log_config.so
+LoadModule env_module /usr/lib/apache2/modules/mod_env.so
+LoadModule headers_module /usr/lib/apache2/modules/mod_headers.so
+LoadModule setenvif_module /usr/lib/apache2/modules/mod_setenvif.so
+LoadModule version_module /usr/lib/apache2/modules/mod_version.so
+LoadModule unixd_module /usr/lib/apache2/modules/mod_unixd.so
+LoadModule status_module /usr/lib/apache2/modules/mod_status.so
+LoadModule autoindex_module /usr/lib/apache2/modules/mod_autoindex.so
 <IfModule !mpm_prefork_module>
-    LoadModule cgid_module modules/mod_cgid.so
+    LoadModule cgid_module /usr/lib/apache2/modules/mod_cgid.so
 </IfModule>
 <IfModule mpm_prefork_module>
-    LoadModule cgi_module modules/mod_cgi.so
+    LoadModule cgi_module /usr/lib/apache2/modules/mod_cgi.so
 </IfModule>
-LoadModule dir_module modules/mod_dir.so
-LoadModule alias_module modules/mod_alias.so
-LoadModule rewrite_module modules/mod_rewrite.so
-LoadModule php_module modules/libphp.so
+LoadModule dir_module /usr/lib/apache2/modules/mod_dir.so
+LoadModule alias_module /usr/lib/apache2/modules/mod_alias.so
+LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
+LoadModule php_module /usr/lib/apache2/modules/libphp.so
 
 <IfModule unixd_module>
 User apache

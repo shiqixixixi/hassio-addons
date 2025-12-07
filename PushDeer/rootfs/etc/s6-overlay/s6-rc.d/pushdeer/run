@@ -60,8 +60,13 @@ services:
         format: "json"
 EOF
 
-# Make gorush executable
-chmod +x /app/push/gorush-with-mipush/gorush
-
-# Start gorush for iOS
-exec /app/push/gorush-with-mipush/gorush -c /app/push/ios.yml
+# Make gorush executable if it exists
+if [ -f /app/push/gorush-with-mipush/gorush ]; then
+    chmod +x /app/push/gorush-with-mipush/gorush
+    # Start gorush for iOS
+    exec /app/push/gorush-with-mipush/gorush -c /app/push/ios.yml
+else
+    # If gorush doesn't exist, just sleep
+    echo "gorush not found, sleeping..."
+    exec sleep infinity
+fi
