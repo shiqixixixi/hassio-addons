@@ -4,38 +4,56 @@
 # Use Alpine Linux default Apache configuration
 # Just update the document root and enable PHP
 
-# Use Alpine Linux default Apache configuration
-# The apache2 package already comes with a working configuration
+# Completely replace the Apache configuration with a minimal working version
+# that doesn't manually load any modules
 
-# Just update the document root in the default configuration
-if [ -f /etc/apache2/httpd.conf ]; then
-    # Update document root
-    sed -i 's|DocumentRoot "/var/www/localhost/htdocs"|DocumentRoot "/app/public"|g' /etc/apache2/httpd.conf
-    
-    # Update directory configuration
-    sed -i 's|</Directory>|<Directory "/app/public">\n    Options Indexes FollowSymLinks\n    AllowOverride All\n    Require all granted\n</Directory>|g' /etc/apache2/httpd.conf
-    
-    # Ensure PHP is enabled
-    echo 'AddType application/x-httpd-php .php' >> /etc/apache2/httpd.conf
-    echo 'DirectoryIndex index.php index.html' >> /etc/apache2/httpd.conf
-else
-    # Fallback to a minimal working configuration if default doesn't exist
-    cat > /etc/apache2/httpd.conf << EOF
+# First, delete any existing httpd.conf file to start fresh
+rm -f /etc/apache2/httpd.conf
+
+# Create a brand new httpd.conf that doesn't load any modules manually
+# Apache will automatically load the necessary modules
+cat > /etc/apache2/httpd.conf << 'EOF'
+# Apache HTTP Server Configuration File
 ServerRoot "/usr"
 Listen 80
-Include /etc/apache2/conf.d/*.conf
+ServerName localhost
+
+# Don't load any modules manually - Apache will load them automatically
+# based on the modules available in the system
+
+# Basic server configuration
 DocumentRoot "/app/public"
+User apache
+Group apache
+
+# Security settings
+<Directory />
+    AllowOverride None
+    Require all denied
+</Directory>
+
+# Document root configuration
 <Directory "/app/public">
     Options Indexes FollowSymLinks
     AllowOverride All
     Require all granted
 </Directory>
-AddType application/x-httpd-php .php
+
+# DirectoryIndex settings
 DirectoryIndex index.php index.html
+
+# PHP settings
+AddType application/x-httpd-php .php
+
+# Log settings
 ErrorLog /proc/self/fd/2
+LogLevel warn
 CustomLog /proc/self/fd/1 combined
 EOF
-fi
 
-# Start Apache
+# Create a simple PHP info file for testing (optional)
+echo "<?php phpinfo(); ?>" > /app/public/info.php
+
+# Start Apache in the foreground
 exec httpd -D FOREGROUND
+
