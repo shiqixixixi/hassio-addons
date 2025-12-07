@@ -1,4 +1,4 @@
-base-url: “https://ntfy.ityxx.cn”
+base-url: “https://ntfy.ityxx.cn/*”
 cache-file: “/config/ntfy/cache.db”
 attachment-cache-dir: “/config/ntfy/attachments”
 attachment-total-size-limit: “5G”
