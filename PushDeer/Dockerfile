@@ -48,14 +48,14 @@ ARG CACHE_BUST=1
 # Copy app files (only API directory)
 COPY ./pushdeer/pushdeer/api /app
 
-# Copy push directory for gorush (ignore if empty)
-COPY ./pushdeer/pushdeer/push /app/push 2>/dev/null || true
+# Copy root filesystem
+COPY rootfs /
 
 # Copy configuration files (if they exist)
 RUN mkdir -p /etc
 
-# Copy root filesystem
-COPY rootfs /
+# Create push directory if it doesn't exist
+RUN mkdir -p /app/push
 
 # Set permissions - ensure directories exist before chmod, and ignore errors
 RUN \
