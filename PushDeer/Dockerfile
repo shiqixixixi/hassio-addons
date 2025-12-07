@@ -80,7 +80,7 @@ ENV MQTT_ON=false
 
 # Install composer dependencies
 RUN \
-    curl -sS `https://getcomposer.org/installer`  | php -- --install-dir=/usr/local/bin --filename=composer \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && cd /app \
     && composer update --no-dev --optimize-autoloader
 
