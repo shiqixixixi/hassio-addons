@@ -39,7 +39,6 @@ RUN \
         php83-xmlreader \
         php83-xmlwriter \
         php83-zip \
-        redis \
         supervisor
 
 # Force rebuild of COPY instructions
