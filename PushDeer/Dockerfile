@@ -10,37 +10,37 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Install dependencies
 RUN \
     apk add --no-cache \
-        apache2=2.4.62-r3 \
-        curl=8.11.0-r1 \
-        git=2.49.1-r0 \
-        mariadb-client=11.4.3-r0 \
-        php83=8.3.10-r0 \
-        php83-apache2=8.3.10-r0 \
-        php83-bcmath=8.3.10-r0 \
-        php83-ctype=8.3.10-r0 \
-        php83-curl=8.3.10-r0 \
-        php83-dom=8.3.10-r0 \
-        php83-fileinfo=8.3.10-r0 \
-        php83-gd=8.3.10-r0 \
-        php83-iconv=8.3.10-r0 \
-        php83-json=8.3.10-r0 \
-        php83-mbstring=8.3.10-r0 \
-        php83-mysqli=8.3.10-r0 \
-        php83-openssl=8.3.10-r0 \
-        php83-pdo=8.3.10-r0 \
-        php83-pdo_mysql=8.3.10-r0 \
-        php83-phar=8.3.10-r0 \
-        php83-redis=6.0.2-r0 \
-        php83-session=8.3.10-r0 \
-        php83-simplexml=8.3.10-r0 \
-        php83-sodium=8.3.10-r0 \
-        php83-tokenizer=8.3.10-r0 \
-        php83-xml=8.3.10-r0 \
-        php83-xmlreader=8.3.10-r0 \
-        php83-xmlwriter=8.3.10-r0 \
-        php83-zip=8.3.10-r0 \
-        redis=7.2.5-r0 \
-        supervisor=4.2.5-r1
+        apache2 \
+        curl \
+        git \
+        mariadb-client \
+        php83 \
+        php83-apache2 \
+        php83-bcmath \
+        php83-ctype \
+        php83-curl \
+        php83-dom \
+        php83-fileinfo \
+        php83-gd \
+        php83-iconv \
+        php83-json \
+        php83-mbstring \
+        php83-mysqli \
+        php83-openssl \
+        php83-pdo \
+        php83-pdo_mysql \
+        php83-phar \
+        php83-redis \
+        php83-session \
+        php83-simplexml \
+        php83-sodium \
+        php83-tokenizer \
+        php83-xml \
+        php83-xmlreader \
+        php83-xmlwriter \
+        php83-zip \
+        redis \
+        supervisor
 
 # Copy app files
 COPY ./pushdeer/pushdeer /app
