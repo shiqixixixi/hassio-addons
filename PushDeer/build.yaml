@@ -1,6 +1,0 @@
-build_from:
-  aarch64: webdevops/php-apache:8.0
-  amd64: webdevops/php-apache:8.0
-  armhf: webdevops/php-apache:8.0
-  armv7: webdevops/php-apache:8.0
-  i386: webdevops/php-apache:8.0

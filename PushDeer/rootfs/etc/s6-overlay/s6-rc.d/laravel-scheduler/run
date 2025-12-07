@@ -1,9 +1,0 @@
-#!/command/with-contenv bashio
-# shellcheck shell=bash
-
-# Run Laravel scheduler every minute
-while true; do
-    echo "Running Laravel scheduler..."
-    cd /app && php artisan schedule:run >> /dev/null 2>&1
-    sleep 60
-done
