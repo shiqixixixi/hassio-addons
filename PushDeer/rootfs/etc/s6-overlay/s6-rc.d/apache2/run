@@ -4,46 +4,38 @@
 # Use Alpine Linux default Apache configuration
 # Just update the document root and enable PHP
 
-# Use Alpine Linux native Apache configuration
-cat > /etc/apache2/httpd.conf << EOF
+# Use Alpine Linux default Apache configuration
+# The apache2 package already comes with a working configuration
+
+# Just update the document root in the default configuration
+if [ -f /etc/apache2/httpd.conf ]; then
+    # Update document root
+    sed -i 's|DocumentRoot "/var/www/localhost/htdocs"|DocumentRoot "/app/public"|g' /etc/apache2/httpd.conf
+    
+    # Update directory configuration
+    sed -i 's|</Directory>|<Directory "/app/public">\n    Options Indexes FollowSymLinks\n    AllowOverride All\n    Require all granted\n</Directory>|g' /etc/apache2/httpd.conf
+    
+    # Ensure PHP is enabled
+    echo 'AddType application/x-httpd-php .php' >> /etc/apache2/httpd.conf
+    echo 'DirectoryIndex index.php index.html' >> /etc/apache2/httpd.conf
+else
+    # Fallback to a minimal working configuration if default doesn't exist
+    cat > /etc/apache2/httpd.conf << EOF
 ServerRoot "/usr"
 Listen 80
-
-# Load necessary modules from the correct path
-LoadModule dir_module /usr/lib/apache2/modules/mod_dir.so
-LoadModule mime_module /usr/lib/apache2/modules/mod_mime.so
-LoadModule php_module /usr/lib/apache2/modules/libphp83.so
-LoadModule unixd_module /usr/lib/apache2/modules/mod_unixd.so
-LoadModule authz_core_module /usr/lib/apache2/modules/mod_authz_core.so
-LoadModule log_config_module /usr/lib/apache2/modules/mod_log_config.so
-
-# Basic configuration
-ServerAdmin you@example.com
-ServerName localhost
-
-# Document root
+Include /etc/apache2/conf.d/*.conf
 DocumentRoot "/app/public"
-
-# Directory settings
 <Directory "/app/public">
     Options Indexes FollowSymLinks
     AllowOverride All
     Require all granted
 </Directory>
-
-# DirectoryIndex settings
-<IfModule dir_module>
-    DirectoryIndex index.php index.html
-</IfModule>
-
-# PHP settings
 AddType application/x-httpd-php .php
-AddType application/x-httpd-php-source .phps
-
-# Log settings
+DirectoryIndex index.php index.html
 ErrorLog /proc/self/fd/2
 CustomLog /proc/self/fd/1 combined
 EOF
+fi
 
 # Start Apache
 exec httpd -D FOREGROUND
