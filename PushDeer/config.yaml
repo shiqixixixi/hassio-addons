@@ -10,6 +10,7 @@ arch:
   - i386
 startup: application
 boot: auto
+init: false
 url: https://github.com/easychen/pushdeer
 host_network: false
 map:
