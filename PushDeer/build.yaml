@@ -1,6 +1,6 @@
 build_from:
-  armhf: ccr.ccs.tencentyun.com/ftqq/pushdeercore
-  armv7: ccr.ccs.tencentyun.com/ftqq/pushdeercore
-  aarch64: ccr.ccs.tencentyun.com/ftqq/pushdeercore
-  amd64: ccr.ccs.tencentyun.com/ftqq/pushdeercore
-  i386: ccr.ccs.tencentyun.com/ftqq/pushdeercore
+  aarch64: ghcr.io/hassio-addons/base:19.0.0-aarch64
+  amd64: ghcr.io/hassio-addons/base:19.0.0-amd64
+  armhf: ghcr.io/hassio-addons/base:19.0.0-armhf
+  armv7: ghcr.io/hassio-addons/base:19.0.0-armv7
+  i386: ghcr.io/hassio-addons/base:19.0.0-i386
