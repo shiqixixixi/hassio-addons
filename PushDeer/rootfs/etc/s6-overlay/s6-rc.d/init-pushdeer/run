@@ -1,0 +1,100 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+
+# Set up environment variables
+export DB_HOST=$(bashio::config db_host)
+export DB_PORT=$(bashio::config db_port)
+export DB_USERNAME=$(bashio::config db_username)
+export DB_DATABASE=$(bashio::config db_database)
+export DB_PASSWORD=$(bashio::config db_password)
+export REDIS_HOST=$(bashio::config redis_host)
+export REDIS_PORT=$(bashio::config redis_port)
+export REDIS_PASSWORD=$(bashio::config redis_password)
+export APP_DEBUG=$(bashio::config app_debug)
+export MQTT_API_KEY=$(bashio::config mqtt_api_key)
+export MQTT_ON=$(bashio::config mqtt_on)
+
+# Create .env file
+cat > /app/.env << EOF
+APP_NAME=PushDeer
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=${APP_DEBUG}
+APP_URL=http://localhost
+
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+
+DB_CONNECTION=mysql
+DB_HOST=${DB_HOST}
+DB_PORT=${DB_PORT}
+DB_DATABASE=${DB_DATABASE}
+DB_USERNAME=${DB_USERNAME}
+DB_PASSWORD=${DB_PASSWORD}
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+SESSION_CONNECTION=default
+
+MEMCACHED_HOST=127.0.0.1
+
+REDIS_HOST=${REDIS_HOST}
+REDIS_PASSWORD=${REDIS_PASSWORD}
+REDIS_PORT=${REDIS_PORT}
+
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
+
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
+PUSHER_HOST=
+PUSHER_PORT=443
+PUSHER_SCHEME=https
+PUSHER_APP_CLUSTER=mt1
+
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_HOST="${PUSHER_HOST}"
+VITE_PUSHER_PORT="${PUSHER_PORT}"
+VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+
+GO_PUSH_IOS_TOPIC=com.pushdeer.self.ios
+GO_PUSH_IOS_CLIP_TOPIC=com.pushdeer.self.ios.Clip
+MQTT_API_KEY=${MQTT_API_KEY}
+MQTT_ON=${MQTT_ON}
+EOF
+
+# Generate app key
+cd /app && php artisan key:generate --force
+
+# Run migrations
+cd /app && php artisan migrate --force
+
+# Seed database if needed
+cd /app && php artisan db:seed --force 2>/dev/null || true
+
+# Set permissions
+chown -R apache:apache /app/storage
+chmod -R 755 /app/storage
+chown -R apache:apache /app/bootstrap/cache
+chmod -R 755 /app/bootstrap/cache
+
+exit 0

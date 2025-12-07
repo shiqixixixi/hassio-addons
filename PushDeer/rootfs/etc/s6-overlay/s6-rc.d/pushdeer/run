@@ -1,0 +1,62 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+
+# Configure gorush for iOS push notifications
+cat > /app/push/ios.yml << EOF
+services:
+  push:
+    - name: "ios"
+      enabled: true
+      mode: "grpc"
+      port: 9001
+      cert: "/app/push/c.p12"
+      key: ""
+      password: ""
+      topic: "com.pushdeer.self.ios"
+      production: false
+      redis:
+        addr: "${REDIS_HOST}:${REDIS_PORT}"
+        password: "${REDIS_PASSWORD}"
+        db: 0
+      queue:
+        name: "ios"
+        workers: 4
+        retry: 3
+        timeout: 60
+      log:
+        level: "info"
+        format: "json"
+EOF
+
+# Configure gorush for iOS Clip push notifications
+cat > /app/push/clip.yml << EOF
+services:
+  push:
+    - name: "ios-clip"
+      enabled: true
+      mode: "grpc"
+      port: 9002
+      cert: "/app/push/cc.p12"
+      key: ""
+      password: ""
+      topic: "com.pushdeer.self.ios.Clip"
+      production: false
+      redis:
+        addr: "${REDIS_HOST}:${REDIS_PORT}"
+        password: "${REDIS_PASSWORD}"
+        db: 0
+      queue:
+        name: "ios-clip"
+        workers: 4
+        retry: 3
+        timeout: 60
+      log:
+        level: "info"
+        format: "json"
+EOF
+
+# Make gorush executable
+chmod +x /app/push/gorush-with-mipush/gorush
+
+# Start gorush for iOS
+exec /app/push/gorush-with-mipush/gorush -c /app/push/ios.yml

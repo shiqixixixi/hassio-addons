@@ -1,18 +1,60 @@
-#ARG BUILD_FROM
-#FROM $BUILD_FROM
-FROM webdevops/php-apache:8.0
-# 首先配置 vhost
-COPY ./pushdeer/pushdeer/docker/web/vhost.conf /opt/docker/etc/httpd/vhost.conf
-# COPY ./docker/web/web.vhost.conf /opt/docker/etc/httpd/vhost.common.d/
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:19.0.0
+FROM ${BUILD_FROM}
 
-COPY ./pushdeer/pushdeer/docker/web/init.sh /opt/docker/provision/entrypoint.d/
-#CMD chmod +x /opt/docker/provision/entrypoint.d/init.sh
-
+# Set workdir
 WORKDIR /app
-COPY ./pushdeer/pushdeer /app
-#COPY ./app /app
-#RUN chmod +x /app
 
+# Set shell
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# Install dependencies
+RUN \
+    apk add --no-cache \
+        apache2=2.4.62-r3 \
+        curl=8.11.0-r1 \
+        git=2.49.1-r0 \
+        mariadb-client=11.4.3-r0 \
+        php83=8.3.10-r0 \
+        php83-apache2=8.3.10-r0 \
+        php83-bcmath=8.3.10-r0 \
+        php83-ctype=8.3.10-r0 \
+        php83-curl=8.3.10-r0 \
+        php83-dom=8.3.10-r0 \
+        php83-fileinfo=8.3.10-r0 \
+        php83-gd=8.3.10-r0 \
+        php83-iconv=8.3.10-r0 \
+        php83-json=8.3.10-r0 \
+        php83-mbstring=8.3.10-r0 \
+        php83-mysqli=8.3.10-r0 \
+        php83-openssl=8.3.10-r0 \
+        php83-pdo=8.3.10-r0 \
+        php83-pdo_mysql=8.3.10-r0 \
+        php83-phar=8.3.10-r0 \
+        php83-redis=6.0.2-r0 \
+        php83-session=8.3.10-r0 \
+        php83-simplexml=8.3.10-r0 \
+        php83-sodium=8.3.10-r0 \
+        php83-tokenizer=8.3.10-r0 \
+        php83-xml=8.3.10-r0 \
+        php83-xmlreader=8.3.10-r0 \
+        php83-xmlwriter=8.3.10-r0 \
+        php83-zip=8.3.10-r0 \
+        redis=7.2.5-r0 \
+        supervisor=4.2.5-r1
+
+# Copy app files
+COPY ./pushdeer/pushdeer /app
+
+# Copy configuration files
+COPY ./docker /etc
+
+# Set permissions
+RUN \
+    chown -R apache:apache /app \
+    && chmod -R 755 /app/storage \
+    && chmod -R 755 /app/bootstrap/cache
+
+# Environment variables
 ENV DB_HOST=core-mariadb
 ENV DB_PORT=3306
 ENV DB_USERNAME=pushdeer
@@ -23,46 +65,42 @@ ENV GO_PUSH_IOS_CLIP_TOPIC=com.pushdeer.self.ios.Clip
 ENV APP_DEBUG=false
 ENV MQTT_API_KEY=9LKo3
 ENV MQTT_ON=false
-# 然后运行初始化脚本
-# https://dockerfile.readthedocs.io/en/latest/content/Customization/provisioning.html
 
+# Install composer dependencies
+RUN \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && cd /app \
+    && composer install --no-dev --optimize-autoloader
 
-RUN echo "session.save_handler = redis\n" >> /opt/docker/etc/php/php.webdevops.ini
-RUN echo "session.save_path = 'tcp://b1af8335-redis-server:6379?auth=123456'\n" >> /opt/docker/etc/php/php.webdevops.ini
-##RUN echo "session.save_path = 'tcp://b1af8335-redis:6379?auth=123456'\n" >> /opt/docker/etc/php/php.webdevops.ini
+# Health check
+HEALTHCHECK --start-period=30s \
+    CMD curl --fail http://127.0.0.1:80 || exit 1
 
-RUN echo "session.gc_maxlifetime = '259200'\n" >> /opt/docker/etc/php/php.webdevops.ini
+# Build arguments
+ARG BUILD_ARCH
+ARG BUILD_DATE
+ARG BUILD_DESCRIPTION
+ARG BUILD_NAME
+ARG BUILD_REF
+ARG BUILD_REPOSITORY
+ARG BUILD_VERSION
 
-RUN sed -i 's/redis:6379/b1af8335-redis-server:6379/g' /app/push/ios.yml 
-RUN sed -i 's/redis:6379/b1af8335-redis-server:6379/g' /app/push/clip.yml
-
-#RUN sed -i 's/redis:6379/b1af8335-redis:6379/g' /app/push/ios.yml 
-#RUN sed -i 's/redis:6379/b1af8335-redis:6379/g' /app/push/clip.yml
-
-RUN sed -i 's/password: ""/password: "123456"/g' /app/push/ios.yml
-RUN sed -i 's/password: ""/password: "123456"/g' /app/push/clip.yml
-
-RUN echo "if [ ! -S /data/log ]; then rm -f /data/log;" > /opt/docker/bin/service.d/syslog-ng.d/10-init.sh
-# ADD supervisord-proxy.conf /opt/docker/etc/supervisor.d/prism-proxy.conf
-
-#RUN mkdir /data
-COPY ./pushdeer/pushdeer/docker/web/gorush /home
-RUN chmod +x /home/gorush 
-
-#RUN mkdir /opt/docker/etc/supervisor.d
-ADD ./pushdeer/pushdeer/docker/web/supervisord-ios.conf /opt/docker/etc/supervisor.d/push-ios.conf
-ADD ./pushdeer/pushdeer/docker/web/supervisord-clip.conf /opt/docker/etc/supervisor.d/push-clip.conf
-
-RUN sed -i 's/data/home/g' /opt/docker/etc/supervisor.d/push-ios.conf
-RUN sed -i 's/data/home/g' /opt/docker/etc/supervisor.d/push-clip.conf
-
-RUN sed -i 's@dev/log@home/log@g' /etc/syslog-ng/syslog-ng.conf
-
-ADD ./pushdeer/pushdeer/docker/web/larave-cron /etc/cron.d
-RUN chmod +x /etc/cron.d/larave-cron 
-
-# 配置 https
-# 在本目录下创建ssl目录，放入证书（server.crt，server.key），然后去掉下一行的注释
-# ADD ssl /app/ssl
-
-EXPOSE 80
+# Labels
+LABEL \
+    io.hass.name="${BUILD_NAME}" \
+    io.hass.description="${BUILD_DESCRIPTION}" \
+    io.hass.arch="${BUILD_ARCH}" \
+    io.hass.type="addon" \
+    io.hass.version=${BUILD_VERSION} \
+    maintainer="PushDeer Team" \
+    org.opencontainers.image.title="${BUILD_NAME}" \
+    org.opencontainers.image.description="${BUILD_DESCRIPTION}" \
+    org.opencontainers.image.vendor="Home Assistant Community Add-ons" \
+    org.opencontainers.image.authors="PushDeer Team" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.url="https://github.com/easychen/pushdeer" \
+    org.opencontainers.image.source="https://github.com/easychen/pushdeer" \
+    org.opencontainers.image.documentation="https://github.com/easychen/pushdeer/blob/main/README.md" \
+    org.opencontainers.image.created=${BUILD_DATE} \
+    org.opencontainers.image.revision=${BUILD_REF} \
+    org.opencontainers.image.version=${BUILD_VERSION}
