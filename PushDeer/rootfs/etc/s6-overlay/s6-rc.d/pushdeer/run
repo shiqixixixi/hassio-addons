@@ -1,6 +1,11 @@
 #!/command/with-contenv bashio
 # shellcheck shell=bash
 
+# Set up environment variables
+export REDIS_HOST=$(bashio::config redis_host)
+export REDIS_PORT=$(bashio::config redis_port)
+export REDIS_PASSWORD=$(bashio::config redis_password)
+
 # Configure gorush for iOS push notifications
 cat > /app/push/ios.yml << EOF
 services:

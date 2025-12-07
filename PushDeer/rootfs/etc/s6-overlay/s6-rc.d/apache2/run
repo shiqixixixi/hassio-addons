@@ -100,4 +100,4 @@ IncludeOptional conf.d/*.conf
 EOF
 
 # Start Apache
-exec apachectl -D FOREGROUND
+exec httpd -D FOREGROUND
