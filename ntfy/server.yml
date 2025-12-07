@@ -1,5 +1,5 @@
-base-url: https://ntfy.ityxx.cn
-cache-file: “/config/ntfy/cache.db”
-attachment-cache-dir: “/config/ntfy/attachments”
-auth-file: “/config/ntfy/user.db”
-auth-default-access: “deny-all”
+base-url: "https://ntfy.ityxx.cn"
+cache-file: "/config/ntfy/cache.db"
+attachment-cache-dir: "/config/ntfy/attachments"
+auth-file: "/config/ntfy/user.db"
+auth-default-access: "read-write"
