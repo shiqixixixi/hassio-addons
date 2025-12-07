@@ -48,11 +48,16 @@ COPY ./pushdeer/pushdeer /app
 # Copy configuration files
 COPY ./docker /etc
 
+# Copy root filesystem
+COPY rootfs /
+
 # Set permissions
 RUN \
     chown -R apache:apache /app \
     && chmod -R 755 /app/storage \
-    && chmod -R 755 /app/bootstrap/cache
+    && chmod -R 755 /app/bootstrap/cache \
+    && find /etc/s6-overlay/s6-rc.d -name "run" -exec chmod +x {} \; \
+    && chown -R root:root /etc/s6-overlay/s6-rc.d/
 
 # Environment variables
 ENV DB_HOST=core-mariadb
