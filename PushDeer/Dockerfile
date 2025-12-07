@@ -11,7 +11,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN \
     apk add --no-cache \
         apache2 \
-        cron \
         curl \
         git \
         mariadb-client \

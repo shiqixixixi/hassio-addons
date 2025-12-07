@@ -1,8 +1,0 @@
-#!/command/with-contenv bashio
-# shellcheck shell=bash
-
-# Set up cron job for Laravel scheduler
-echo "* * * * * cd /app && php artisan schedule:run >> /dev/null 2>&1" > /etc/crontabs/root
-
-# Start cron service
-exec crond -f -d 8
