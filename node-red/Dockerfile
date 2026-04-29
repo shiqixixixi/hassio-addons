@@ -15,19 +15,19 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Setup base
 RUN \
     apk add --no-cache --virtual .build-dependencies \
-        build-base \
-        linux-headers \
-        py3-pip \
-        python3-dev \
+        build-base=0.5-r3 \
+        linux-headers=6.16.12-r0 \
+        py3-pip=25.1.1-r1 \
+        python3-dev=3.12.13-r0 \
     \
     && apk add --no-cache \
-        git \
-        icu-data-full \
-        nginx \
-        nodejs \
-        npm \
-        openssh-client-default \
-        patch \
+        git=2.52.0-r0 \
+        icu-data-full=76.1-r1 \
+        nginx=1.28.3-r0 \
+        nodejs=24.14.1-r0 \
+        npm=11.11.0-r0 \
+        openssh-client-default=10.2_p1-r0 \
+        patch=2.8-r0 \
     \
     && npm install \
         --no-audit \
@@ -58,6 +58,7 @@ COPY rootfs /
 # 权限处理
 RUN find /etc/s6-overlay/s6-rc.d -name "run" -exec chmod +x {} \; && \
     chown -R root:root /etc/s6-overlay/s6-rc.d/
+
 
 # Health check
 HEALTHCHECK --start-period=10m \
