@@ -15,10 +15,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Setup base
 RUN \
     apk add --no-cache --virtual .build-dependencies \
-        build-base=0.5-r3 \
-        linux-headers=6.16.12-r0 \
-        py3-pip=25.1.1-r1 \
-        python3-dev=3.12.12-r0 \
+        build-base \
+        linux-headers \
+        py3-pip \
+        python3-dev \
     \
     && apk add --no-cache \
         git \
