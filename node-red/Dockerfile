@@ -1,4 +1,4 @@
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:20.0.1
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:20.1.0
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
@@ -21,13 +21,13 @@ RUN \
         python3-dev=3.12.12-r0 \
     \
     && apk add --no-cache \
-        git=2.52.0-r0 \
-        icu-data-full=76.1-r1 \
+        git \
+        icu-data-full \
         nginx \
         nodejs \
         npm \
-        openssh-client-default=10.2_p1-r0 \
-        patch=2.8-r0 \
+        openssh-client-default \
+        patch \
     \
     && npm install \
         --no-audit \
