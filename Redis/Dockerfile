@@ -3,6 +3,8 @@ FROM redis:alpine
 LABEL maintainer="1791539136@qq.com"
 LABEL description="Redis server for Home Assistant (HassOS Add-on)"
 
+RUN sysctl vm.overcommit_memory=1
+
 # 安装必要工具（jq用于解析JSON，gosu用于正确切换用户）
 RUN apk add --no-cache bash jq gosu \
     && mkdir -p /data /opt/redis /tmp/redis \
