@@ -63,7 +63,8 @@ module.exports = {
   mysqlReconnectTime: 30000,
   
   // The maximum length, in characters, of any message sent to the debug sidebar tab
-  debugMaxLength: 1000,
+  //debugMaxLength: 1000,
+  debugMaxLength: 5000,
 
   // The maximum number of messages nodes will buffer internally as part of their
   // operation. This applies across a range of nodes that operate on message sequences.
@@ -205,8 +206,8 @@ module.exports = {
       module: 'localfilesystem', // 内置文件存储模块，无需额外安装
       config: {
         dir: '/config/node-red-context', // 关键：在 /config 下创建独立子目录，避免文件混乱
-        //cache: true, // 启用内存缓存（减少 IO 频率，优化性能）
-        //flushInterval: 1000, // 缓存 1 秒后批量写入文件（平衡实时性和性能）
+        cache: true, // 启用内存缓存（减少 IO 频率，优化性能）
+        flushInterval: 1000, // 缓存 1 秒后批量写入文件（平衡实时性和性能）
         // 可选：设置单个文件最大大小（默认 10MB，超过会自动分割）
         //maxFileSize: 10485760 
       }
