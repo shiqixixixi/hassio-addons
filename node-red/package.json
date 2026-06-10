@@ -12,7 +12,7 @@
   "dependencies": {
     "bcryptjs": "3.0.3",
     "js-yaml": "4.2.0",
-    "node-red": "4.1.11",
+    "node-red": "5.0.0",
     "node-red-contrib-bigtimer": "2.8.6",
     "node-red-contrib-cast": "0.2.17",
     "node-red-contrib-counter": "0.1.6",
@@ -34,7 +34,7 @@
     "node-red-node-smooth": "0.1.2",
     "node-red-node-suncalc": "1.2.0",
     "node-red-node-twitter": "1.2.0",
-    "@node-red-contrib-themes/theme-collection": "4.1.1",
+    "@node-red-contrib-themes/theme-collection": "5.0.1",
     "line-by-line": "0.1.6",
     "source-map-support": "0.5.21"
   },
