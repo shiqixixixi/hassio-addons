@@ -20,13 +20,12 @@ RUN \
     python3-dev=3.14.5-r0 \
     \
     && apk add --no-cache \
-    git=2.52.0-r0 \
-    icu-data-full=76.1-r1 \
-    nginx \
-    nodejs=24.14.1-r0 \
-    npm=11.11.0-r0 \
-    openssh-client-default=10.2_p1-r0 \
-    patch=2.8-r0 \
+    git=2.54.0-r0 \
+    icu-data-full=78.1-r0 \
+    nginx=1.30.2-r1 \
+    nodejs=24.16.0-r0 \
+    npm=11.12.1-r0 \
+    openssh-client-default=10.3_p1-r0 \
     \
     && npm install \
     --no-audit \
