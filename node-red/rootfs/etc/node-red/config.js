@@ -5,7 +5,10 @@ const bcrypt = require("bcryptjs");
 
 if ("theme" in options) {
   if (options.theme !== "default") {
-    config.editorTheme.theme = options.theme;
+    // The "dark" theme was renamed to "dark-modern" in theme-collection v5.
+    // Keep applying the correct theme when the deprecated value is still set.
+    config.editorTheme.theme =
+      options.theme === "dark" ? "dark-modern" : options.theme;
   }
 }
 
@@ -23,7 +26,7 @@ config.httpNodeRoot = "/endpoint";
 // Disable authentication, let HA handle that
 //config.adminAuth = null;
 // Secure admin node
-if(config.adminAuth) {
+if (config.adminAuth) {
   if (options.http_admin.username) {
     config.adminAuth = {
       type: "credentials",

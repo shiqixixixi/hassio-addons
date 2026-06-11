@@ -1,10 +1,9 @@
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:20.1.1
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.0
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
 # Copy Node-RED package.json
 COPY package.json /opt/
-COPY node-red-dashboard-show-dashboard.patch /tmp/
 
 # Set workdir
 WORKDIR /opt
@@ -40,9 +39,6 @@ RUN \
     && npm cache clear --force \
     \
     && echo -e "StrictHostKeyChecking no" >> /etc/ssh/ssh_config \
-    \
-    && patch -d /opt/node_modules/node-red-dashboard -p1 \
-             -i /tmp/node-red-dashboard-show-dashboard.patch \
     \
     && apk del --no-cache --purge .build-dependencies \
     && rm -fr \
