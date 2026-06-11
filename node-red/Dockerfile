@@ -14,26 +14,26 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Setup base
 RUN \
     apk add --no-cache --virtual .build-dependencies \
-        build-base=0.5-r3 \
-        linux-headers=6.16.12-r0 \
-        py3-pip=25.1.1-r1 \
-        python3-dev=3.12.13-r0 \
+    build-base=0.5-r4 \
+    linux-headers=7.0.0-r1 \
+    py3-pip=26.1.2-r0 \
+    python3-dev=3.14.5-r0 \
     \
     && apk add --no-cache \
-        git=2.52.0-r0 \
-        icu-data-full=76.1-r1 \
-        nginx \
-        nodejs=24.14.1-r0 \
-        npm=11.11.0-r0 \
-        openssh-client-default=10.2_p1-r0 \
-        patch=2.8-r0 \
+    git=2.52.0-r0 \
+    icu-data-full=76.1-r1 \
+    nginx \
+    nodejs=24.14.1-r0 \
+    npm=11.11.0-r0 \
+    openssh-client-default=10.2_p1-r0 \
+    patch=2.8-r0 \
     \
     && npm install \
-        --no-audit \
-        --no-fund \
-        --no-update-notifier \
-        --omit=dev \
-        --unsafe-perm \
+    --no-audit \
+    --no-fund \
+    --no-update-notifier \
+    --omit=dev \
+    --unsafe-perm \
     && npm rebuild --build-from-source @serialport/bindings-cpp \
     \
     && npm cache clear --force \
@@ -42,11 +42,11 @@ RUN \
     \
     && apk del --no-cache --purge .build-dependencies \
     && rm -fr \
-        /etc/nginx \
-        /root/.cache \
-        /root/.npm \
-        /root/.nrpmrc \
-        /tmp/*
+    /etc/nginx \
+    /root/.cache \
+    /root/.npm \
+    /root/.nrpmrc \
+    /tmp/*
 
 
 # Copy root filesystem
