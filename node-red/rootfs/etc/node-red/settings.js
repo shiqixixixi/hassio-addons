@@ -106,10 +106,10 @@ module.exports = {
   // in the HTTP nodes.
   // See https://github.com/troygoode/node-cors#configuration-options for
   // details on its contents. The following is a basic permissive set of options:
-  //httpNodeCors: {
-  //    origin: "*",
-  //    methods: "GET,PUT,POST,DELETE"
-  //},
+  httpNodeCors: {
+    origin: ["https://lyy901.cn", "https://www.lyy901.cn"],
+    methods: "GET,PUT,POST,DELETE"
+  },
 
   // If you need to set an http proxy please set an environment variable
   // called http_proxy (or HTTP_PROXY) outside of Node-RED in the operating system.
