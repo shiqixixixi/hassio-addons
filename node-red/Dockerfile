@@ -52,8 +52,8 @@ RUN \
 COPY rootfs /
 
 # 权限处理
-#RUN find /etc/s6-overlay/s6-rc.d -name "run" -exec chmod +x {} \; && \
-#    chown -R root:root /etc/s6-overlay/s6-rc.d/
+RUN find /etc/s6-overlay/s6-rc.d -name "run" -exec chmod +x {} \; && \
+    chown -R root:root /etc/s6-overlay/s6-rc.d/
 
 # Health check
 HEALTHCHECK --start-period=10m \
