@@ -26,8 +26,8 @@ config.httpNodeRoot = "/endpoint";
 // Disable authentication, let HA handle that
 //config.adminAuth = null;
 // Secure admin node
-if (config.adminAuth) {
-  if (options.http_admin.username) {
+if (options.http_admin.username) {
+  if (config.adminAuth == null) {
     config.adminAuth = {
       type: "credentials",
       users: [{
