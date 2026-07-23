@@ -200,7 +200,7 @@ module.exports = {
     //  module: 'memory' // 内存存储，重启丢失（与默认行为一致，可删除）
     //},
     // 核心：文件系统存储（永久存储全局变量）
-    store: {
+    default: {
       module: 'localfilesystem', // 内置文件存储模块，无需额外安装
       config: {
         dir: '/config/node-red-context', // 关键：在 /config 下创建独立子目录，避免文件混乱
