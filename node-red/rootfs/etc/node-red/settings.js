@@ -206,9 +206,12 @@ module.exports = {
         dir: '/config/node-red-context', // 关键：在 /config 下创建独立子目录，避免文件混乱
         cache: true, // 启用内存缓存（减少 IO 频率，优化性能）
         flushInterval: 30000, // 改为30秒落盘，大幅减少IO
-        maxFileSize: 10485760,
-        gcInterval: 3600000 // 每小时自动清理过期上下文
+        //maxFileSize: 10485760,
+        //gcInterval: 3600000 // 每小时自动清理过期上下文
       }
+    },
+    memory: {
+      module: 'memory'
     }
   },
 };
