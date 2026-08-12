@@ -22,7 +22,7 @@
     "options": {
         "configFolder": "Bark",
         "ssl": true,
-        "useExternalUrl": true,
+        "useExternalUrl": true
     },
     "schema": {
         "configFolder": "str",
