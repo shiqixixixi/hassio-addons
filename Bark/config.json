@@ -23,15 +23,11 @@
         "configFolder": "Bark",
         "ssl": true,
         "useExternalUrl": true,
-        "certfile": "fullchain.pem",
-        "keyfile": "privkey.pem"
     },
     "schema": {
         "configFolder": "str",
         "ssl": "bool",
-        "useExternalUrl": "bool",
-        "certfile": "str",
-        "keyfile": "str"
+        "useExternalUrl": "bool"
     },
     "panel_icon": "mdi:earth",
     "panel_title": "Bark",
@@ -40,6 +36,7 @@
     "webui": "http://[HOST]:[PORT:8080]",
     "homeassistant_api": false,
     "ingress": true,
+    "ingress_panel": true,
     "auth_api": false,
     "docker_api": false,
     "host_dbus": false,
