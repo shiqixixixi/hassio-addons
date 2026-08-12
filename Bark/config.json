@@ -20,14 +20,10 @@
         "ssl"
     ],
     "options": {
-        "configFolder": "Bark",
-        "ssl": true,
-        "useExternalUrl": true
+        "configFolder": "Bark"
     },
     "schema": {
-        "configFolder": "str",
-        "ssl": "bool",
-        "useExternalUrl": "bool"
+        "configFolder": "str"
     },
     "panel_icon": "mdi:earth",
     "panel_title": "Bark",
