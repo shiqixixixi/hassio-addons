@@ -50,20 +50,17 @@ module.exports = {
   serialReconnectTime: 15000,
 
   // Retry time in milliseconds for TCP socket connections
-  socketReconnectTime: 10000,
+  //socketReconnectTime: 10000,
 
   // Timeout in milliseconds for TCP server socket connections
   //  defaults to no timeout
-  socketTimeout: 60000,
+  //socketTimeout: 120000,
 
   // Timeout in milliseconds for HTTP request connections
   //  defaults to 120 seconds
-  httpRequestTimeout: 60000,
-
-  mysqlReconnectTime: 30000,
+  //httpRequestTimeout: 120000,
 
   // The maximum length, in characters, of any message sent to the debug sidebar tab
-  //debugMaxLength: 1000,
   debugMaxLength: 1000,
 
   // The maximum number of messages nodes will buffer internally as part of their
