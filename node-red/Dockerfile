@@ -14,18 +14,18 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Setup base
 RUN \
     apk add --no-cache --virtual .build-dependencies \
-    build-base=0.5-r4 \
-    linux-headers=7.0.0-r1 \
-    py3-pip=26.1.2-r0 \
-    python3-dev=3.14.5-r0 \
+    build-base \
+    linux-headers \
+    py3-pip \
+    python3-dev \
     \
     && apk add --no-cache \
-    git=2.54.0-r0 \
-    icu-data-full=78.1-r0 \
-    nginx=1.30.4-r1 \
-    nodejs=24.18.1-r0 \
-    npm=11.12.1-r0 \
-    openssh-client-default=10.3_p1-r0 \
+    git \
+    icu-data-full \
+    nginx \
+    nodejs \
+    npm \
+    openssh-client-default \
     \
     && npm install \
     --no-audit \
