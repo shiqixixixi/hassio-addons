@@ -13,11 +13,15 @@ users:
     permissions: <权限字符串>
 ```
 
-`permissions` 字段可选,不填时默认为 `*` (完全访问)。
+`permissions` 字段可选,不填时默认为 `read` (只读访问)。
 
 ## 全部可用权限
 
-多个权限用英文逗号 `,` 分隔,例如 `"flows.read,context.read"`。
+> **重要**: 多权限在 YAML 中可以用逗号分隔字符串(如 `"flows.read,context.read"`),加载项会自动转为 Node-RED 所需的数组格式。单权限直接写字符串即可(如 `read` 或 `flows.read`)。
+
+Node-RED 内置预设:
+- `*` 完全访问
+- `read` 只读访问(等同于所有 `.read` 权限组合)
 
 | 权限字符串 | 说明 |
 |---|---|

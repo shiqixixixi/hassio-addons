@@ -41,10 +41,17 @@ if (config.adminAuth == null && (options.http_admin.username || (options.users &
   if (options.users && options.users.length > 0) {
     options.users.forEach(function(user) {
       if (user.username) {
+        // Node-RED permissions 必须是字符串(单权限)或数组(多权限)
+        // 逗号分隔字符串会被视为单个未知权限名导致权限失效,这里自动转数组
+        // 未配置时默认 "read"(只读) 而非 "*"(完全访问),遵循最小权限原则
+        var perms = user.permissions || "read";
+        if (typeof perms === "string" && perms !== "*" && perms !== "read" && perms.indexOf(",") !== -1) {
+          perms = perms.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+        }
         config.adminAuth.users.push({
           username: user.username,
           password: bcrypt.hashSync(user.password),
-          permissions: user.permissions || "*",
+          permissions: perms,
         });
       }
     });
