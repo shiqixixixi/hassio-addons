@@ -1,0 +1,41 @@
+name: Build Add-on
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - node-red/**
+      - .github/workflows/build-addon.yml
+  workflow_run:
+    workflows: ["Update Node-RED Packages"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    name: Build Node-RED add-on
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Publish add-on
+        uses: hassio-addons/action-builder@main
+        with:
+          addon: node-red
+        env:
+          CR_USERNAME: ${{ github.actor }}
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
