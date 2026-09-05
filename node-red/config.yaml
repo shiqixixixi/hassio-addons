@@ -37,6 +37,7 @@ options:
   http_admin:
     username: ""
     password: ""
+  users: []
   http_node:
     username: ""
     password: ""
@@ -56,6 +57,10 @@ schema:
   http_admin:
     username: str
     password: password
+  users:
+    - username: str
+      password: password
+      permissions: list(*|read)?
   http_node:
     username: str
     password: password

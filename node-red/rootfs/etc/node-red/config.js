@@ -26,16 +26,28 @@ config.httpNodeRoot = "/endpoint";
 // Disable authentication, let HA handle that
 //config.adminAuth = null;
 // Secure admin node
-if (options.http_admin.username) {
-  if (config.adminAuth == null) {
-    config.adminAuth = {
-      type: "credentials",
-      users: [{
-        username: options.http_admin.username,
-        password: bcrypt.hashSync(options.http_admin.password),
-        permissions: "*",
-      }]
-    };
+if (config.adminAuth == null && (options.http_admin.username || (options.users && options.users.length > 0))) {
+  config.adminAuth = {
+    type: "credentials",
+    users: []
+  };
+  if (options.http_admin.username) {
+    config.adminAuth.users.push({
+      username: options.http_admin.username,
+      password: bcrypt.hashSync(options.http_admin.password),
+      permissions: "*",
+    });
+  }
+  if (options.users && options.users.length > 0) {
+    options.users.forEach(function(user) {
+      if (user.username) {
+        config.adminAuth.users.push({
+          username: user.username,
+          password: bcrypt.hashSync(user.password),
+          permissions: user.permissions || "*",
+        });
+      }
+    });
   }
 }
 // Disable SSL, since the add-on handles that
