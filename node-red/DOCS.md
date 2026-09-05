@@ -1,3 +1,69 @@
+# 用户权限配置
+
+本加载项支持通过 `users` 选项配置多个用户,每个用户可独立指定权限,实现对 flows、context 等资源的细粒度访问控制。
+
+## 配置方式
+
+在加载项 YAML 配置中添加 `users` 列表:
+
+```yaml
+users:
+  - username: <用户名>
+    password: <密码>
+    permissions: <权限字符串>
+```
+
+`permissions` 字段可选,不填时默认为 `*` (完全访问)。
+
+## 全部可用权限
+
+多个权限用英文逗号 `,` 分隔,例如 `"flows.read,context.read"`。
+
+| 权限字符串 | 说明 |
+|---|---|
+| `*` | 完全访问 (默认,等同于所有权限) |
+| `read` | 只读访问 (等同于所有 `.read` 权限的组合) |
+| `flows.read` | 查看 flows (流) — 不给则看不到 flows 标签内容 |
+| `flows.write` | 编辑/保存 flows |
+| `context.read` | 查看 context (global/flow/node 上下文) |
+| `context.write` | 修改 context |
+| `nodes.read` | 查看已安装的节点列表 |
+| `nodes.write` | 安装/卸载/启用/禁用节点 |
+| `settings.read` | 读取用户设置 |
+| `settings.write` | 修改用户设置 |
+| `library.read` | 读取 library (如已导出的 flows) |
+| `library.write` | 写入 library (导出 flows) |
+
+## 常用组合示例
+
+### 隐藏 flows 和 global context
+
+不包含 `flows.read` 和 `context.read`,用户登录后看不到 flows 标签内容和 global 上下文:
+
+```yaml
+users:
+  - username: hidden
+    password: hidden-pass
+    permissions: "nodes.read,nodes.write,settings.read,settings.write,library.read,library.write"
+```
+
+### 只能查看 flows,不能编辑
+
+```yaml
+users:
+  - username: flow_viewer
+    password: fv-pass
+    permissions: "flows.read,context.read,nodes.read,settings.read,library.read"
+```
+
+### 注意事项
+
+- `http_admin` 中的用户始终拥有 `*` 权限 (完全访问),作为管理员入口
+- `users` 列表中的用户权限完全由 YAML 配置控制,代码不做任何预设映射
+- 权限字符串原样透传给 Node-RED,具体可用权限取决于 Node-RED 版本
+
+---
+
 # Home Assistant Community Add-on: Node-RED
 
 [Node-RED][nodered] is a programming tool for wiring together hardware devices,

@@ -60,7 +60,7 @@ schema:
   users:
     - username: str
       password: password
-      permissions: list(*|read)?
+      permissions: str?
   http_node:
     username: str
     password: password
