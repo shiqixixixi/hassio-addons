@@ -2,8 +2,6 @@ ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.3
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
-ARG BUILD_ARCH
-
 # Copy Node-RED package.json
 COPY package.json /opt/
 
@@ -16,35 +14,27 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Setup base
 RUN \
     apk add --no-cache --virtual .build-dependencies \
-    build-base \
-    linux-headers \
-    py3-pip \
-    python3-dev \
+        build-base=0.5-r4 \
+        linux-headers=7.0.0-r1 \
+        py3-pip=26.1.2-r0 \
+        python3-dev=3.14.7-r1 \
     \
     && apk add --no-cache \
-    git \
-    icu-data-full \
-    nginx \
-    openssh-client-default \
-    \
-    # Alpine's nodejs crashes with SIGILL under QEMU aarch64 emulation,
-    # use official Node.js binary (glibc) with gcompat for aarch64.
-    && if [ "${BUILD_ARCH}" = "aarch64" ]; then \
-        apk add --no-cache gcompat libstdc++ curl \
-        && curl -fsSL https://nodejs.org/dist/v22.12.0/node-v22.12.0-linux-arm64.tar.xz \
-        | tar -xJ -C /usr/local --strip-components=1 \
-        && ln -sf /usr/local/bin/node /usr/bin/node \
-        && ln -sf /usr/local/bin/npm /usr/bin/npm; \
-    else \
-        apk add --no-cache nodejs npm; \
-    fi \
+        git=2.54.0-r0 \
+        icu-data-full=78.1-r0 \
+        nginx=1.30.4-r1 \
+        nodejs=24.18.1-r0 \
+        npm=11.12.1-r0 \
+        openssh-client-default=10.3_p1-r1 \
+        patch=2.8-r0 \
     \
     && npm install \
-    --no-audit \
-    --no-fund \
-    --no-update-notifier \
-    --omit=dev \
-    && npm rebuild @serialport/bindings-cpp \
+        --no-audit \
+        --no-fund \
+        --no-update-notifier \
+        --omit=dev \
+        --unsafe-perm \
+    && npm rebuild --build-from-source @serialport/bindings-cpp \
     \
     && npm cache clear --force \
     \
@@ -52,25 +42,21 @@ RUN \
     \
     && apk del --no-cache --purge .build-dependencies \
     && rm -fr \
-    /etc/nginx \
-    /root/.cache \
-    /root/.npm \
-    /root/.nrpmrc \
-    /tmp/*
-
+        /etc/nginx \
+        /root/.cache \
+        /root/.npm \
+        /root/.nrpmrc \
+        /tmp/*
 
 # Copy root filesystem
 COPY rootfs /
-
-# 权限处理
-RUN find /etc/s6-overlay/s6-rc.d -name "run" -exec chmod +x {} \; && \
-    chown -R root:root /etc/s6-overlay/s6-rc.d/
 
 # Health check
 HEALTHCHECK --start-period=10m \
     CMD curl --fail http://127.0.0.1:46836 || exit 1
 
 # Build arguments
+ARG BUILD_ARCH
 ARG BUILD_DATE
 ARG BUILD_DESCRIPTION
 ARG BUILD_NAME
