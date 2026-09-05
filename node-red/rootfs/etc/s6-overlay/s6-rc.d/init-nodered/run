@@ -1,0 +1,48 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Home Assistant Community App: Node-RED
+# Configures Node-RED before running
+# ==============================================================================
+
+# Migrate app data from the Home Assistant config folder,
+# to the app configuration folder.
+if ! bashio::fs.file_exists '/config/settings.js' \
+    && bashio::fs.file_exists '/homeassistant/node-red/settings.js'; then
+    shopt -s dotglob
+    mv /homeassistant/node-red/* /config/ \
+        || bashio::exit.nok "Failed to migrate Node-RED configuration"
+fi
+
+# Ensure configuration exists
+if ! bashio::fs.file_exists '/config/settings.js'; then
+    mkdir -p /config/nodes \
+        || bashio::exit.nok "Failed to create node-red configuration directory"
+
+    # Copy in template files
+    cp /etc/node-red/flows.json /config/
+    cp /etc/node-red/settings.js /config/
+
+    # Create random flow id
+    id=$(node -e "console.log((1+Math.random()*4294967295).toString(16));")
+    sed -i "s/%%ID%%/${id}/" "/config/flows.json"
+fi
+
+# The "dark" theme was renamed to "dark-modern" in theme-collection v5.
+# Migrate the stored option so it stays valid and shows the new value.
+if bashio::config.equals 'theme' 'dark'; then
+    bashio::log.notice "Migrating deprecated 'dark' theme to 'dark-modern'..."
+    bashio::app.option 'theme' 'dark-modern' \
+        || bashio::log.warning \
+            "Could not migrate the 'theme' option, continuing anyway..."
+fi
+
+# Ensures conflicting Node-RED packages are absent
+cd /config || bashio::exit.nok "Could not change directory to Node-RED"
+if bashio::fs.file_exists "/config/package.json"; then
+    npm uninstall \
+        node-red-contrib-home-assistant \
+        node-red-contrib-home-assistant-llat \
+        node-red-contrib-home-assistant-ws \
+            || bashio::log.warning "Failed un-installing conflicting packages"
+fi

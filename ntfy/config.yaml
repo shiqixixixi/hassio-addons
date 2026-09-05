@@ -1,0 +1,16 @@
+name: ntfy
+version: "2.11.0"
+slug: ntfy
+image: ghcr.io/shiqixixixi/hassio-addons/{arch}-ntfy
+description: ntfy
+url: "https://github.com/binwiederhier/ntfy"
+arch:
+  - amd64
+startup: application
+boot: auto
+ports:
+  80/tcp: 8800
+map:
+  - config:rw
+ports_description:
+  80/tcp: ntfy server port

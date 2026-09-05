@@ -1,0 +1,27 @@
+name: Redis
+version: "7.4.8"
+slug: redis_server
+image: ghcr.io/shiqixixixi/hassio-addons/{arch}-redis_server
+description: A Redis server for Home Assistant, providing in-memory data storage.
+url: "https://github.com/shiqixixixi/hassio-addons"
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+map:
+  - type: homeassistant_config
+  - type: app_config
+ports:
+  6379/tcp: 6379
+ports_description:
+  6379/tcp: Redis server port
+options:
+  max_memory: "128mb"        # 普通字符串字段
+  require_pass: ""           # 普通字符串字段
+  appendonly: false          # 普通布尔字段
+schema:
+  max_memory: str
+  require_pass: str
+  appendonly: bool
+apparmor: true

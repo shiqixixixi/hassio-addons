@@ -1,0 +1,47 @@
+# Redis Add-on AppArmor Profile
+profile redis {
+  # Capabilities
+  capability dac_override,
+  capability net_bind_service,
+  capability setgid,
+  capability setuid,
+  capability sys_resource,
+
+  # Allow signals: receive from unconfined (Docker/supervisor) and
+  # send/receive within the profile (tini forwards SIGTERM to redis-server).
+  signal (receive) peer=unconfined,
+  signal (send receive) peer=redis,
+
+  # File access
+  /data/** rwk,
+  /opt/** rwk,
+  /tmp/** rwk,
+  /etc/** r,
+  /lib/** mr,
+  /usr/** mr,
+  /usr/local/** mr,
+  /proc/** r,
+  /dev/** rw,
+  /run.sh r,
+  /sys/** r,
+  /etc/redis/** r,
+
+  # Execution (redis:alpine installs to /usr/local/bin)
+  /run.sh ix,
+  /usr/local/bin/redis-server ixr,
+  /usr/local/bin/redis-cli ixr,
+  /usr/local/bin/* ixr,
+  /usr/bin/redis-server ixr,
+  /usr/bin/redis-cli ixr,
+  /bin/bash ix,
+  /bin/sh ix,
+  /usr/bin/jq ix,
+  /usr/bin/gosu ix,
+  /usr/bin/* ixr,
+  /bin/* ixr,
+  /sbin/* ixr,
+
+  # Network
+  network tcp,
+  network udp,
+}

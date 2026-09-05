@@ -1,0 +1,359 @@
+name: Build Add-ons
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    name: Discover add-ons
+    runs-on: ubuntu-latest
+    outputs:
+      addons: ${{ steps.discover.outputs.addons }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Discover add-ons
+        id: discover
+        run: |
+          addons=$(python3 -c "
+          import os, json, subprocess
+
+          # Get all addon directories
+          all_addons = []
+          for d in sorted(os.listdir('.')):
+              if os.path.isdir(d) and not d.startswith('.'):
+                  if os.path.exists(f'{d}/config.yaml'):
+                      all_addons.append(d)
+
+          event = '${{ github.event_name }}'
+
+          # For push events, only build addons whose files changed
+          if event == 'push':
+              # Get changed files vs previous commit
+              try:
+                  result = subprocess.run(
+                      ['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'],
+                      capture_output=True, text=True
+                  )
+                  changed_files = result.stdout.strip().split('\n') if result.stdout.strip() else []
+
+                  # Extract top-level dirs from changed files
+                  changed_dirs = set()
+                  for f in changed_files:
+                      parts = f.split('/')
+                      if len(parts) > 1:
+                          changed_dirs.add(parts[0])
+
+                  changed_addons = sorted([a for a in all_addons if a in changed_dirs])
+
+                  if changed_addons:
+                      # Only build the addons that were modified
+                      addons = changed_addons
+                  else:
+                      # No addon dirs changed (e.g. only .github/ or root files)
+                      # Build all to validate the workflow still works
+                      addons = all_addons
+              except Exception:
+                  addons = all_addons
+          else:
+              # workflow_dispatch / schedule -> build all
+              addons = all_addons
+
+          print(json.dumps(addons))
+          ")
+          echo "addons=${addons}" >> "$GITHUB_OUTPUT"
+          echo "Found addons to build: ${addons}"
+
+  prepare:
+    name: Prepare build matrix
+    needs: discover
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.prepare.outputs.matrix }}
+      apps: ${{ steps.prepare.outputs.apps }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: pip3 install pyyaml
+
+      - name: Prepare build matrix
+        id: prepare
+        run: |
+          set -e
+          declare -A ARCH_MAP=(
+            [amd64]="linux/amd64"
+            [aarch64]="linux/arm64"
+            [armv7]="linux/arm/v7"
+            [armhf]="linux/arm/v6"
+            [i386]="linux/386"
+          )
+
+          matrix='{"include": []}'
+          apps='{}'
+
+          for addon in $(echo '${{ needs.discover.outputs.addons }}' | jq -r '.[]'); do
+            config_file="${addon}/config.yaml"
+
+            if [ ! -f "$config_file" ]; then
+              echo "Skipping ${addon}: no config.yaml"
+              continue
+            fi
+
+            info=$(python3 .github/scripts/parse_config.py "${config_file}")
+
+            if [ "$info" = "NO_IMAGE" ]; then
+              echo "Skipping ${addon}: no image field in config"
+              continue
+            fi
+
+            image_name=$(echo "$info" | jq -r '.image_name')
+            registry_prefix=$(echo "$info" | jq -r '.registry_prefix')
+            version=$(echo "$info" | jq -r '.version')
+
+            apps=$(echo "$apps" | jq --arg addon "$addon" \
+              --arg image_name "$image_name" \
+              --arg registry_prefix "$registry_prefix" \
+              --arg version "$version" \
+              '. + {($addon): {image_name: $image_name, registry_prefix: $registry_prefix, version: $version}}')
+
+            for arch in $(echo "$info" | jq -r '.archs[]'); do
+              platform="${ARCH_MAP[$arch]}"
+              if [ -z "$platform" ]; then
+                echo "Skipping unknown arch: ${arch}"
+                continue
+              fi
+              build_from=$(echo "$info" | jq -r --arg arch "$arch" '.build_from[$arch] // ""')
+              image="${registry_prefix}/${arch}-${image_name}"
+              matrix=$(echo "$matrix" | jq \
+                --arg addon "$addon" \
+                --arg arch "$arch" \
+                --arg platform "$platform" \
+                --arg image "$image" \
+                --arg version "$version" \
+                --arg build_from "$build_from" \
+                '.include += [{"addon": $addon, "arch": $arch, "platform": $platform, "image": $image, "version": $version, "build_from": $build_from}]')
+            done
+          done
+
+          echo "matrix=$(echo "$matrix" | jq -c '.')" >> "$GITHUB_OUTPUT"
+          echo "apps=$(echo "$apps" | jq -c '.')" >> "$GITHUB_OUTPUT"
+          echo "Total builds: $(echo "$matrix" | jq '.include | length')"
+
+  build:
+    name: Build ${{ matrix.addon }} (${{ matrix.arch }})
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.addon }}
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: |
+            ${{ matrix.image }}:${{ matrix.version }}
+            ${{ matrix.image }}:latest
+          labels: |
+            io.hass.version=${{ matrix.version }}
+            io.hass.arch=${{ matrix.arch }}
+            io.hass.type=app
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          build-args: ${{ (matrix.build_from != '' && format('BUILD_FROM={0}', matrix.build_from)) || '' }}
+
+  manifest:
+    name: Publish ${{ matrix.addon }}
+    needs: [discover, prepare, build]
+    if: ${{ always() && needs.discover.result == 'success' && needs.prepare.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        addon: ${{ fromJSON(needs.discover.outputs.addons) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: pip3 install pyyaml
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get addon info
+        id: info
+        run: |
+          addon="${{ matrix.addon }}"
+          apps='${{ needs.prepare.outputs.apps }}'
+          image_name=$(echo "$apps" | jq -r --arg addon "$addon" '.[$addon].image_name')
+          if [ "$image_name" = "null" ] || [ -z "$image_name" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "image_name=${image_name}" >> "$GITHUB_OUTPUT"
+          echo "registry_prefix=$(echo "$apps" | jq -r --arg addon "$addon" '.[$addon].registry_prefix')" >> "$GITHUB_OUTPUT"
+          echo "version=$(echo "$apps" | jq -r --arg addon "$addon" '.[$addon].version')" >> "$GITHUB_OUTPUT"
+          config_file="${addon}/config.yaml"
+          archs=$(python3 .github/scripts/get_archs.py "$config_file" | tr '\n' ' ')
+          echo "archs=${archs}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish multi-arch manifest
+        if: steps.info.outputs.skip != 'true'
+        run: |
+          image_name="${{ steps.info.outputs.image_name }}"
+          registry_prefix="${{ steps.info.outputs.registry_prefix }}"
+          version="${{ steps.info.outputs.version }}"
+          archs="${{ steps.info.outputs.archs }}"
+
+          manifest_image="${registry_prefix}/${image_name}"
+          sources=""
+          for arch in $archs; do
+            sources="${sources} ${registry_prefix}/${arch}-${image_name}:${version}"
+          done
+
+          echo "Creating manifest: ${manifest_image}:${version}"
+          docker buildx imagetools create -t "${manifest_image}:${version}" -t "${manifest_image}:latest" ${sources} || echo "WARNING: Failed to create manifest for ${manifest_image}"
+
+      - name: Make packages public
+        if: steps.info.outputs.skip != 'true'
+        run: |
+          image_name="${{ steps.info.outputs.image_name }}"
+          registry_prefix="${{ steps.info.outputs.registry_prefix }}"
+          archs="${{ steps.info.outputs.archs }}"
+          pkg_path=$(echo "$registry_prefix" | cut -d'/' -f3-)
+
+          for arch in $archs; do
+            pkg="${pkg_path}/${arch}-${image_name}"
+            encoded_pkg=$(echo "$pkg" | sed 's|/|%2F|g')
+            echo "Setting ${pkg} to public..."
+            curl -s -X PATCH \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/user/packages/container/${encoded_pkg}" \
+              -d '{"visibility":"public"}' \
+              -w " -> HTTP %{http_code}\n" || true
+          done
+
+          pkg="${pkg_path}/${image_name}"
+          encoded_pkg=$(echo "$pkg" | sed 's|/|%2F|g')
+          echo "Setting ${pkg} to public..."
+          curl -s -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/user/packages/container/${encoded_pkg}" \
+            -d '{"visibility":"public"}' \
+            -w " -> HTTP %{http_code}\n" || true
+
+      - name: Clean up old versions (keep last 3)
+        if: steps.info.outputs.skip != 'true'
+        run: |
+          image_name="${{ steps.info.outputs.image_name }}"
+          registry_prefix="${{ steps.info.outputs.registry_prefix }}"
+          archs="${{ steps.info.outputs.archs }}"
+          pkg_path=$(echo "$registry_prefix" | cut -d'/' -f3-)
+          KEEP=3
+
+          cleanup_package() {
+            local pkg="$1"
+            local encoded_pkg=$(echo "$pkg" | sed 's|/|%2F|g')
+            echo "=== Cleaning up ${pkg} (keep last ${KEEP}) ==="
+            versions=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/user/packages/container/${encoded_pkg}/versions?per_page=100&state=active")
+            version_ids=$(echo "$versions" | jq -r 'sort_by(.created_at) | reverse | .[].id')
+            count=0
+            for vid in $version_ids; do
+              count=$((count + 1))
+              if [ $count -gt $KEEP ]; then
+                echo "  Deleting version ID: ${vid}"
+                curl -s -X DELETE \
+                  -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                  -H "Accept: application/vnd.github+json" \
+                  "https://api.github.com/user/packages/container/${encoded_pkg}/versions/${vid}" \
+                  -w " -> HTTP %{http_code}\n" || true
+              else
+                tags=$(echo "$versions" | jq -r ".[] | select(.id == ${vid}) | .metadata.container.tags // [] | join(\", \")")
+                echo "  Keeping version ${vid} (tags: ${tags})"
+              fi
+            done
+          }
+
+          for arch in $archs; do
+            cleanup_package "${pkg_path}/${arch}-${image_name}"
+          done
+          cleanup_package "${pkg_path}/${image_name}"
+
+  cleanup-runs:
+    name: Clean up old workflow runs
+    needs: [discover, prepare, build, manifest]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Delete old workflow runs (keep latest 20)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          KEEP=20
+          echo "Keeping latest ${KEEP} workflow runs..."
+
+          run_ids=$(gh run list --limit 1000 --json databaseId,createdAt \
+            --jq 'sort_by(.createdAt) | reverse | .[].databaseId')
+
+          count=0
+          deleted=0
+          for id in $run_ids; do
+            count=$((count + 1))
+            if [ $count -gt $KEEP ]; then
+              echo "Deleting run $id..."
+              gh run delete "$id" && deleted=$((deleted + 1)) || echo "  Failed to delete $id"
+            fi
+          done
+          echo "Done. Kept $((count < KEEP ? count : KEEP)) runs, deleted ${deleted} runs."

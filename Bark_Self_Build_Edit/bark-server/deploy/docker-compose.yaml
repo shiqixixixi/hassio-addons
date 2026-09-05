@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  bark-server:
+    image: adams549659584/bark-server
+    container_name: bark-server
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+      - ./web:/web
+    ports:
+      - "8080:8080"
+    # 使用 mysql
+    # command: bark-server -dsn="root:123456@tcp(127.0.0.1:3306)/bark"

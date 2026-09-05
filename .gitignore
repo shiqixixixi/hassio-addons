@@ -1,0 +1,8 @@
+.DS_Store
+.history
+*/.DS_Store
+*/*/.DS_Store
+*/*/*/.DS_Store
+*/*/*/*/.DS_Store
+*/*/*/*/*/.DS_Store
+node-red/package-lock.json
