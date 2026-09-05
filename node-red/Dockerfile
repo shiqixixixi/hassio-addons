@@ -44,7 +44,7 @@ RUN \
     --no-fund \
     --no-update-notifier \
     --omit=dev \
-    && npm rebuild --build-from-source @serialport/bindings-cpp \
+    && npm rebuild @serialport/bindings-cpp \
     \
     && npm cache clear --force \
     \
