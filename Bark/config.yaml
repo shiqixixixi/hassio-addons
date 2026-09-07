@@ -19,10 +19,6 @@ map:
   - homeassistant_config:rw
   - share
   - ssl
-options:
-  configFolder: Bark
-schema:
-  configFolder: str
 panel_icon: mdi:earth
 panel_title: Bark
 hassio_api: true
