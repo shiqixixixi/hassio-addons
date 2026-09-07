@@ -1,6 +1,6 @@
 ---
 name: Bark
-version: "2.1.6"
+version: "2.1.7"
 slug: bark_server
 image: ghcr.io/shiqixixixi/hassio-addons/{arch}-bark_server
 description: Bark
