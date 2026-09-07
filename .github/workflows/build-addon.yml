@@ -18,7 +18,7 @@ jobs:
       addons: ${{ steps.discover.outputs.addons }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -83,7 +83,7 @@ jobs:
       apps: ${{ steps.prepare.outputs.apps }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Python dependencies
         run: pip3 install pyyaml
@@ -163,7 +163,7 @@ jobs:
       matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -208,7 +208,7 @@ jobs:
         addon: ${{ fromJSON(needs.discover.outputs.addons) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Python dependencies
         run: pip3 install pyyaml
