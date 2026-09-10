@@ -24,7 +24,7 @@ RUN set -ex \
  && pip3 install --break-system-packages -U six \
  && pip3 install --break-system-packages \
 	mopidy \
-	mopidy-local-sqlite \
+	mopidy-local \
 	Mopidy-Moped \
 	Mopidy-Iris \
  && apt-get purge --auto-remove -y \
