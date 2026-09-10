@@ -24,6 +24,7 @@ RUN set -ex \
  && pip3 install --break-system-packages -U six \
  && pip3 install --break-system-packages \
 	mopidy \
+  mopidy-mpd \
 	mopidy-local \
 	Mopidy-Moped \
 	Mopidy-Iris \
