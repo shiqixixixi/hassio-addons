@@ -22,7 +22,7 @@ ports:
   6680/tcp: 6680
   6600/tcp: 6600
 map:
-  - share
+  - share:rw
 webui: http://[HOST]:[PORT:6680]
 host_ipc: true
 arch:
