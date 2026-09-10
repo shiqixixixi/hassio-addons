@@ -15,6 +15,8 @@ RUN set -ex \
 	gstreamer1.0-alsa \
 	gstreamer1.0-plugins-good \
 	gstreamer1.0-libav \
+        python3-gi \
+        python3-gst-1.0 \
 	libz-dev \
 	jq \
 	python3-dev \
