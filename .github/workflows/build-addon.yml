@@ -3,6 +3,8 @@ name: Build Add-ons
 on:
   push:
     branches: [main]
+    paths:
+      - '*/config.yaml'
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 0"
