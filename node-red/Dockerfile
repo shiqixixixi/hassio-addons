@@ -1,4 +1,4 @@
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.5
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:21.0.7
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
@@ -17,7 +17,7 @@ RUN \
         build-base=0.5-r4 \
         linux-headers=7.0.0-r1 \
         py3-pip=26.1.2-r0 \
-        python3-dev=3.14.7-r1 \
+        python3-dev=3.14.8-r0 \
     \
     && apk add --no-cache \
         git=2.54.0-r0 \
@@ -54,6 +54,7 @@ COPY rootfs /
 # 权限处理
 RUN find /etc/s6-overlay/s6-rc.d -name "run" -exec chmod +x {} \; && \
     chown -R root:root /etc/s6-overlay/s6-rc.d/
+
 
 # Health check
 HEALTHCHECK --start-period=10m \
