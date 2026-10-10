@@ -104,8 +104,8 @@ module.exports = {
   // See https://github.com/troygoode/node-cors#configuration-options for
   // details on its contents. The following is a basic permissive set of options:
   httpNodeCors: {
-    origin: ["https://lyy901.cn", "https://www.lyy901.cn"],
-    methods: "GET,PUT,POST,DELETE"
+    origin: ["https://lyy901.cn", "https://www.lyy901.cn","http://localhost:8080","https://wx.ityxx.cn","https://dev-wx.ityxx.cn"],
+    methods: "GET,PUT,POST,DELETE,OPTIONS"
   },
 
   // If you need to set an http proxy please set an environment variable
@@ -124,6 +124,7 @@ module.exports = {
   //    //req.skipRawBodyParser = true;
   //    next();
   //},
+  // settings.js
   adminAuth: null,
   // The following property can be used to verify websocket connection attempts.
   // This allows, for example, the HTTP request headers to be checked to ensure
