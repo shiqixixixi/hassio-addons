@@ -88,7 +88,7 @@ module.exports = {
 
   // The maximum size of HTTP request that will be accepted by the runtime api.
   // Default: 5mb
-  //apiMaxLength: '5mb',
+  apiMaxLength: '64mb',
 
   // If you installed the optional node-red-dashboard you can set it's path
   // relative to httpRoot
@@ -104,7 +104,7 @@ module.exports = {
   // See https://github.com/troygoode/node-cors#configuration-options for
   // details on its contents. The following is a basic permissive set of options:
   httpNodeCors: {
-    origin: ["https://lyy901.cn", "https://www.lyy901.cn","http://localhost:8080","https://wx.ityxx.cn","https://dev-wx.ityxx.cn"],
+    origin: ["https://lyy901.cn", "https://www.lyy901.cn","http://localhost:8080","https://wx.ityxx.cn","https://dev-wx.ityxx.cn","http://10.10.10.100:8080","https://wx.lyy901.cn"],
     methods: "GET,PUT,POST,DELETE,OPTIONS"
   },
 
