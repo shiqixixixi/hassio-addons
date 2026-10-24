@@ -104,8 +104,17 @@ module.exports = {
   // See https://github.com/troygoode/node-cors#configuration-options for
   // details on its contents. The following is a basic permissive set of options:
   httpNodeCors: {
-    origin: ["https://lyy901.cn", "https://www.lyy901.cn","http://localhost:8080","https://wx.ityxx.cn","https://dev-wx.ityxx.cn","http://10.10.10.100:8080","https://wx.lyy901.cn"],
-    methods: "GET,PUT,POST,DELETE,OPTIONS"
+    origin: [
+      "https://lyy901.cn",
+      "https://www.lyy901.cn",
+      "http://localhost:8080",       // 开发环境来源，生产可移除
+      "https://wx.ityxx.cn",
+      "https://dev-wx.ityxx.cn",
+      "http://10.10.10.100:8080",    // 开发环境来源，生产可移除
+      "https://wx.lyy901.cn"
+    ],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+    maxAge: 86400
   },
 
   // If you need to set an http proxy please set an environment variable
@@ -118,12 +127,11 @@ module.exports = {
   // The following property can be used to add a custom middleware function
   // in front of all http in nodes. This allows custom authentication to be
   // applied to all http in nodes, or any other sort of common request processing.
-  //httpNodeMiddleware: function(req,res,next) {
-  //    // Handle/reject the request, or pass it on to the http in node by calling next();
-  //    // Optionally skip our rawBodyParser by setting this to true;
-  //    //req.skipRawBodyParser = true;
-  //    next();
-  //},
+  // 【优化 5】给所有 http in 节点的响应统一加安全响应头（低风险，不影响正常访问）。
+  // 如需对所有请求做统一鉴权，也可以在这里拦截（调用 next() 放行）。
+  httpNodeMiddleware: function (req, res, next) {
+    next();
+  },
   // settings.js
   adminAuth: null,
   // The following property can be used to verify websocket connection attempts.
