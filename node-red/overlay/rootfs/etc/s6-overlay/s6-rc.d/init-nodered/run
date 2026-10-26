@@ -1,0 +1,63 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Home Assistant Community App: Node-RED
+# Configures Node-RED before running
+# ==============================================================================
+
+# Migrate app data from the Home Assistant config folder,
+# to the app configuration folder.
+if ! bashio::fs.file_exists '/config/settings.js' \
+    && bashio::fs.file_exists '/homeassistant/node-red/settings.js'; then
+    shopt -s dotglob
+    mv /homeassistant/node-red/* /config/ \
+        || bashio::exit.nok "Failed to migrate Node-RED configuration"
+fi
+
+# Ensure configuration exists
+if ! bashio::fs.file_exists '/config/settings.js'; then
+    mkdir -p /config/nodes \
+        || bashio::exit.nok "Failed to create node-red configuration directory"
+
+    # Copy in template files
+    cp /etc/node-red/flows.json /config/
+    cp /etc/node-red/settings.js /config/
+
+    # Create random flow id
+    id=$(node -e "console.log((1+Math.random()*4294967295).toString(16));")
+    sed -i "s/%%ID%%/${id}/" "/config/flows.json"
+fi
+
+# The "dark" theme was renamed to "dark-modern" in theme-collection v5.
+# Migrate the stored option so it stays valid and shows the new value.
+if bashio::config.equals 'theme' 'dark'; then
+    bashio::log.notice "Migrating deprecated 'dark' theme to 'dark-modern'..."
+    bashio::app.option 'theme' 'dark-modern' \
+        || bashio::log.warning \
+            "Could not migrate the 'theme' option, continuing anyway..."
+fi
+
+# Ensures conflicting Node-RED packages are absent.
+# Only run npm when one of them is actually installed: `npm uninstall` audits
+# the complete dependency tree of the user configuration folder, which costs
+# minutes on slow hardware and does nothing when the packages are not there.
+if bashio::fs.file_exists "/config/package.json"; then
+    declare -a conflicting
+
+    for package in \
+        node-red-contrib-home-assistant \
+        node-red-contrib-home-assistant-llat \
+        node-red-contrib-home-assistant-ws; do
+        if [ -d "/config/node_modules/${package}" ]; then
+            conflicting+=("${package}")
+        fi
+    done
+
+    if [[ ${#conflicting[@]} -gt 0 ]]; then
+        cd /config || bashio::exit.nok "Could not change directory to Node-RED"
+        bashio::log.info \
+            "Removing conflicting packages: ${conflicting[*]}"
+        npm uninstall "${conflicting[@]}" \
+            || bashio::log.warning "Failed un-installing conflicting packages"
+    fi
+fi

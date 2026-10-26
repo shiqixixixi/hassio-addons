@@ -1,0 +1,107 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Home Assistant Community App: Node-RED
+# Executes user customizations on startup
+# ==============================================================================
+declare -a npmlist
+declare state_file='/data/npm_packages.state'
+declare fingerprint
+declare package_name
+declare all_installed=true
+
+# 从 "pkg@1.2.3" / "@scope/pkg@1.2.3" 里取出模块名，无法判断时返回 1
+function npm_package_name() {
+    local spec="$1"
+
+    case "${spec}" in
+        *:*|*/|.|..|./*|../*|/*)
+            return 1
+            ;;
+    esac
+
+    if [[ "${spec}" =~ ^(@[^/]+/[^@]+)@ ]]; then
+        printf '%s' "${BASH_REMATCH[1]}"
+    elif [[ "${spec}" =~ ^([^@]+)@ ]]; then
+        printf '%s' "${BASH_REMATCH[1]}"
+    else
+        printf '%s' "${spec}"
+    fi
+}
+
+# Install user configured/requested packages
+if bashio::config.has_value 'system_packages'; then
+    apk update \
+        || bashio::exit.nok 'Failed updating Alpine packages repository indexes'
+
+    for package in $(bashio::config 'system_packages'); do
+        apk add "$package" \
+            || bashio::exit.nok "Failed installing system package ${package}"
+    done
+fi
+
+# Install user configured/requested packages
+if bashio::config.has_value 'npm_packages'; then
+    cd /opt || bashio::exit.nok "Could not change directory to Node-RED"
+
+    for package in $(bashio::config 'npm_packages'); do
+        npmlist+=("$package")
+    done
+
+    # `npm install` in /opt 需要解析整个应用（1300+ 包）的依赖树，在 HA 硬件上
+    # 即使结果只是 "up to date" 也要几分钟。因此只有在配置变化、镜像内容变化、
+    # 运行时变化时安装，并额外确认模块确实还在（容器重建后 /opt 会重置）。
+    for package in "${npmlist[@]}"; do
+        if ! package_name="$(npm_package_name "${package}")"; then
+            all_installed=false
+            break
+        fi
+        if [ ! -d "/opt/node_modules/${package_name}" ]; then
+            all_installed=false
+        fi
+    done
+
+    fingerprint=$(
+        {
+            printf '%s\n' "${npmlist[@]}" | sort
+            printf 'runtime=%s-%s\n' "$(node --version)" "$(npm --version)"
+            printf 'baked=%s\n' "$(md5sum /opt/package.json | cut -d' ' -f1)"
+        } | md5sum | cut -d' ' -f1
+    )
+
+    if [[ "${all_installed}" == 'true' ]] \
+        && [ -f "${state_file}" ] \
+        && [[ "$(cat "${state_file}")" == "${fingerprint}" ]]; then
+        bashio::log.info \
+            "Custom NPM packages already installed, skipping installation"
+        bashio::log.debug \
+            "Remove ${state_file} to force a reinstall of the custom packages"
+    else
+        if [[ "${all_installed}" != 'true' ]]; then
+            bashio::log.info \
+                "Custom NPM packages are not present in /opt, installing them..."
+        fi
+        bashio::log.info "Starting installation of custom NPM/Node-RED packages..."
+        npm install \
+            --omit=dev \
+            --omit=optional \
+            --no-audit \
+            --no-fund \
+            --no-update-notifier \
+            --no-package-lock \
+            --no-save \
+            --prefer-offline \
+            "${npmlist[@]}" \
+               || bashio::exit.nok "Failed to install a specified npm package"
+
+        echo "${fingerprint}" > "${state_file}"
+    fi
+fi
+
+# Executes user commands on startup
+if bashio::config.has_value 'init_commands'; then
+    while read -r cmd; do
+        eval "${cmd}" \
+            || bashio::exit.nok "Failed executing init command: ${cmd}"
+    done <<< "$(bashio::config 'init_commands')"
+fi

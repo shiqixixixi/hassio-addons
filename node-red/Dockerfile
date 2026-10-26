@@ -51,11 +51,6 @@ RUN \
 # Copy root filesystem
 COPY rootfs /
 
-# 权限处理
-RUN find /etc/s6-overlay/s6-rc.d -name "run" -exec chmod +x {} \; && \
-    chown -R root:root /etc/s6-overlay/s6-rc.d/
-
-
 # Health check
 HEALTHCHECK --start-period=10m \
     CMD curl --fail http://127.0.0.1:46836 || exit 1
@@ -88,3 +83,18 @@ LABEL \
     org.opencontainers.image.created=${BUILD_DATE} \
     org.opencontainers.image.revision=${BUILD_REF} \
     org.opencontainers.image.version=${BUILD_VERSION}
+
+# >>> local-overrides (managed by node-red/sync_upstream.py, do not edit above)
+#
+# Everything above is a verbatim copy of the upstream app-node-red Dockerfile.
+# Everything below is local only.
+#
+# Git checkouts made on Windows (core.fileMode=false) and ZIP downloads drop the
+# executable bit of the s6-overlay scripts, which makes the container fail to
+# start with "unable to execute run". Restore the mode and ownership here so the
+# app also builds from a Windows working copy.
+RUN \
+    find /etc/s6-overlay -type f -name run -exec chmod +x {} \; \
+    && find /etc/s6-overlay -type f -name finish -exec chmod +x {} \; \
+    && chown -R root:root /etc/s6-overlay
+# <<< local-overrides

@@ -27,7 +27,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 18.x
+          node-version: 22.x
           cache: ''
 
       - name: Update packages to latest versions
@@ -48,24 +48,17 @@ jobs:
 
       - name: Bump add-on version
         if: steps.check_changes.outputs.changes == 'true'
-        id: bump_version
         run: |
-          cd node-red
-          # 读取当前版本并自增 patch
-          current_version=$(grep -oP '(?<=^version: )[0-9]+\.[0-9]+\.[0-9]+' config.yaml)
-          IFS='.' read -r major minor patch <<< "$current_version"
-          new_version="${major}.${minor}.$((patch + 1))"
-          sed -i "s/^version: ${current_version}/version: ${new_version}/" config.yaml
-          echo "old_version=${current_version}" >> $GITHUB_OUTPUT
-          echo "new_version=${new_version}" >> $GITHUB_OUTPUT
-          echo "Bumped version: ${current_version} -> ${new_version}"
+          # 版本号跟随 package.json 里的 node-red 版本（变化时同步，未变化时 patch 自增）
+          python3 node-red/sync_upstream.py --version-only
 
       - name: Commit and push changes
         if: steps.check_changes.outputs.changes == 'true'
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          version=$(grep -m1 '^version:' node-red/config.yaml | sed 's/version: *//')
           git add node-red/package.json node-red/config.yaml
-          git commit -m "Auto-update Node-RED packages to v${{ steps.bump_version.outputs.new_version }}"
+          git commit -m "chore(node-red): 更新依赖并同步版本 ${version}"
           git push

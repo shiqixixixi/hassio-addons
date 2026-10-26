@@ -1,0 +1,14 @@
+# >>> local-overrides (managed by node-red/sync_upstream.py, do not edit above)
+#
+# Everything above is a verbatim copy of the upstream app-node-red Dockerfile.
+# Everything below is local only.
+#
+# Git checkouts made on Windows (core.fileMode=false) and ZIP downloads drop the
+# executable bit of the s6-overlay scripts, which makes the container fail to
+# start with "unable to execute run". Restore the mode and ownership here so the
+# app also builds from a Windows working copy.
+RUN \
+    find /etc/s6-overlay -type f -name run -exec chmod +x {} \; \
+    && find /etc/s6-overlay -type f -name finish -exec chmod +x {} \; \
+    && chown -R root:root /etc/s6-overlay
+# <<< local-overrides
