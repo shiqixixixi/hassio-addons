@@ -4,8 +4,30 @@
 # Home Assistant Community App: Node-RED
 # Executes user customizations on startup
 # ==============================================================================
+declare state_file='/data/npm_packages.state'
+declare fingerprint
+declare all_installed
 
-declare -a npmlist
+# npm_package_name <spec>: extract the module name from "pkg@1.2.3" or
+# "@scope/pkg@1.2.3". Return 1 for specs that cannot be checked (git/file/
+# aliases) so the caller forces an installation.
+function npm_package_name() {
+    local spec="$1"
+
+    case "${spec}" in
+        *:*|*/|.|..|./*|../*|/*)
+            return 1
+            ;;
+    esac
+
+    if [[ "${spec}" =~ ^(@[^/]+/[^@]+)@ ]]; then
+        printf '%s' "${BASH_REMATCH[1]}"
+    elif [[ "${spec}" =~ ^([^@]+)@ ]]; then
+        printf '%s' "${BASH_REMATCH[1]}"
+    else
+        printf '%s' "${spec}"
+    fi
+}
 
 # Install user configured/requested packages
 if bashio::config.has_value 'system_packages'; then
@@ -22,16 +44,69 @@ fi
 if bashio::config.has_value 'npm_packages'; then
     cd /opt || bashio::exit.nok "Could not change directory to Node-RED"
 
-    bashio::log.info "Starting installation of custom NPM/Node-RED packages..."
+    # NOTE: bashio runs with `set -u`, where an empty declared array counts as
+    # unbound. Use plain strings (npm specs never contain spaces) instead.
+    npmlist=""
     for package in $(bashio::config 'npm_packages'); do
-        npmlist+=("$package")
+        npmlist="${npmlist:+${npmlist} }${package}"
     done
 
-    npm install \
-        --omit=dev \
-        --omit=optional \
-        "${npmlist[@]}" \
-           || bashio::exit.nok "Failed to install a specified npm package"
+    # `npm install` in /opt has to resolve the dependency tree of the whole app
+    # (1300+ packages) and this takes minutes on Home Assistant OS hardware, even
+    # when the end result is "up to date". Therefore only run it when something
+    # actually changed: the configured package list, the packages baked into the
+    # image, or the Node.js/npm runtime. Additionally check that the modules are
+    # still present, because /opt resets when the container gets recreated.
+    all_installed=true
+    # shellcheck disable=SC2086
+    for package in ${npmlist}; do
+        if ! package_name="$(npm_package_name "${package}")"; then
+            all_installed=false
+            break
+        fi
+        if [ ! -d "/opt/node_modules/${package_name}" ]; then
+            all_installed=false
+        fi
+    done
+
+    fingerprint=$(
+        {
+            # shellcheck disable=SC2086
+            printf '%s\n' ${npmlist} | sort
+            printf 'runtime=%s-%s\n' "$(node --version)" "$(npm --version)"
+            printf 'baked=%s\n' "$(md5sum /opt/package.json | cut -d' ' -f1)"
+        } | md5sum | cut -d' ' -f1
+    )
+
+    # shellcheck disable=SC2086
+    if [ "${all_installed}" = 'true' ] \
+        && [ -f "${state_file}" ] \
+        && [ "$(cat "${state_file}")" = "${fingerprint}" ]; then
+        bashio::log.info \
+            "Custom NPM packages already installed, skipping installation"
+        bashio::log.debug \
+            "Remove ${state_file} to force a reinstall of the custom packages"
+    else
+        if [ "${all_installed}" != 'true' ]; then
+            bashio::log.info \
+                "Custom NPM packages are not present in /opt, installing them..."
+        fi
+        bashio::log.info "Starting installation of custom NPM/Node-RED packages..."
+        # shellcheck disable=SC2086
+        npm install \
+            --omit=dev \
+            --omit=optional \
+            --no-audit \
+            --no-fund \
+            --no-update-notifier \
+            --no-package-lock \
+            --no-save \
+            --prefer-offline \
+            ${npmlist} \
+               || bashio::exit.nok "Failed to install a specified npm package"
+
+        echo "${fingerprint}" > "${state_file}"
+    fi
 fi
 
 # Executes user commands on startup

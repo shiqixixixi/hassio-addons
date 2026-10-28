@@ -41,23 +41,25 @@ fi
 # Only run npm when one of them is actually installed: `npm uninstall` audits
 # the complete dependency tree of the user configuration folder, which costs
 # minutes on slow hardware and does nothing when the packages are not there.
+# NOTE: bashio runs with `set -u`, where an empty declared array counts as
+# unbound. Use a plain string instead of an array to stay safe.
 if bashio::fs.file_exists "/config/package.json"; then
-    declare -a conflicting
+    conflicting=""
 
     for package in \
         node-red-contrib-home-assistant \
         node-red-contrib-home-assistant-llat \
         node-red-contrib-home-assistant-ws; do
         if [ -d "/config/node_modules/${package}" ]; then
-            conflicting+=("${package}")
+            conflicting="${conflicting:+${conflicting} }${package}"
         fi
     done
 
-    if [[ ${#conflicting[@]} -gt 0 ]]; then
+    # shellcheck disable=SC2086
+    if [ -n "${conflicting}" ]; then
         cd /config || bashio::exit.nok "Could not change directory to Node-RED"
-        bashio::log.info \
-            "Removing conflicting packages: ${conflicting[*]}"
-        npm uninstall "${conflicting[@]}" \
+        bashio::log.info "Removing conflicting packages: ${conflicting}"
+        npm uninstall ${conflicting} \
             || bashio::log.warning "Failed un-installing conflicting packages"
     fi
 fi
