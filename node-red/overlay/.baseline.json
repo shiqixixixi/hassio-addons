@@ -1,0 +1,6 @@
+{
+  "files": {
+    "rootfs/etc/s6-overlay/s6-rc.d/init-customizations/run": "de55501a6bfcb4647ea7b06dd835226ca73428eaa55dc18a19d55fdaa274bfa1",
+    "rootfs/etc/s6-overlay/s6-rc.d/init-nodered/run": "37366ac12d846c9e0b0912ca29aa031421b5f949359ee6ee56358063839342a0"
+  }
+}
