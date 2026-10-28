@@ -1,74 +1,4 @@
-# 用户权限配置
-
-本加载项支持通过 `users` 选项配置多个用户,每个用户可独立指定权限,实现对 flows、context 等资源的细粒度访问控制。
-
-## 配置方式
-
-在加载项 YAML 配置中添加 `users` 列表:
-
-```yaml
-users:
-  - username: <用户名>
-    password: <密码>
-    permissions: <权限字符串>
-```
-
-`permissions` 字段可选,不填时默认为 `read` (只读访问)。
-
-## 全部可用权限
-
-> **重要**: 多权限在 YAML 中可以用逗号分隔字符串(如 `"flows.read,context.read"`),加载项会自动转为 Node-RED 所需的数组格式。单权限直接写字符串即可(如 `read` 或 `flows.read`)。
-
-Node-RED 内置预设:
-- `*` 完全访问
-- `read` 只读访问(等同于所有 `.read` 权限组合)
-
-| 权限字符串 | 说明 |
-|---|---|
-| `*` | 完全访问 (默认,等同于所有权限) |
-| `read` | 只读访问 (等同于所有 `.read` 权限的组合) |
-| `flows.read` | 查看 flows (流) — 不给则看不到 flows 标签内容 |
-| `flows.write` | 编辑/保存 flows |
-| `context.read` | 查看 context (global/flow/node 上下文) |
-| `context.write` | 修改 context |
-| `nodes.read` | 查看已安装的节点列表 |
-| `nodes.write` | 安装/卸载/启用/禁用节点 |
-| `settings.read` | 读取用户设置 |
-| `settings.write` | 修改用户设置 |
-| `library.read` | 读取 library (如已导出的 flows) |
-| `library.write` | 写入 library (导出 flows) |
-
-## 常用组合示例
-
-### 隐藏 flows 和 global context
-
-不包含 `flows.read` 和 `context.read`,用户登录后看不到 flows 标签内容和 global 上下文:
-
-```yaml
-users:
-  - username: hidden
-    password: hidden-pass
-    permissions: "nodes.read,nodes.write,settings.read,settings.write,library.read,library.write"
-```
-
-### 只能查看 flows,不能编辑
-
-```yaml
-users:
-  - username: flow_viewer
-    password: fv-pass
-    permissions: "flows.read,context.read,nodes.read,settings.read,library.read"
-```
-
-### 注意事项
-
-- `http_admin` 中的用户始终拥有 `*` 权限 (完全访问),作为管理员入口
-- `users` 列表中的用户权限完全由 YAML 配置控制,代码不做任何预设映射
-- 权限字符串原样透传给 Node-RED,具体可用权限取决于 Node-RED 版本
-
----
-
-# Home Assistant Community Add-on: Node-RED
+# Home Assistant Community App: Node-RED
 
 [Node-RED][nodered] is a programming tool for wiring together hardware devices,
 APIs and online services in new and interesting ways.
@@ -79,28 +9,28 @@ runtime in a single click.
 
 ## Installation
 
-The installation of this add-on is pretty straightforward and not different in
-comparison to installing any other Home Assistant add-on.
+The installation of this app is pretty straightforward and not different in
+comparison to installing any other Home Assistant app.
 
-1. Click the Home Assistant My button below to open the add-on on your Home
+1. Click the Home Assistant My button below to open the app on your Home
    Assistant instance.
 
-   [![Open this add-on in your Home Assistant instance.][addon-badge]][addon]
+   [![Open this app in your Home Assistant instance.][addon-badge]][addon]
 
-1. Click the "Install" button to install the add-on.
-1. Start the "Node-RED" add-on.
+1. Click the "Install" button to install the app.
+1. Start the "Node-RED" app.
 1. Check the logs of "Node-RED" to see if everything went well.
 1. Click on the "OPEN WEB UI" button to jump into Node-RED.
-1. The add-on works straight out the box! No need to configure a server!
+1. The app works straight out the box! No need to configure a server!
 
-**Note**: The add-on is **pre-configured** out of the box! There is no need
+**Note**: The app is **pre-configured** out of the box! There is no need
 to add/change/update the server connection settings!
 
 ## Configuration
 
-**Note**: _Remember to restart the add-on when the configuration is changed._
+**Note**: _Remember to restart the app when the configuration is changed._
 
-Example add-on configuration:
+Example app configuration:
 
 ```yaml
 log_level: info
@@ -126,7 +56,7 @@ init_commands:
 
 ### Option: `log_level`
 
-The `log_level` option controls the level of log output by the addon and can
+The `log_level` option controls the level of log output by the app and can
 be changed to be more or less verbose, which might be useful when you are
 dealing with an unknown issue. Possible values are:
 
@@ -135,7 +65,7 @@ dealing with an unknown issue. Possible values are:
 - `info`: Normal (usually) interesting events.
 - `warning`: Exceptional occurrences that are not errors.
 - `error`: Runtime errors that do not require immediate action.
-- `fatal`: Something went terribly wrong. Add-on becomes unusable.
+- `fatal`: Something went terribly wrong. App becomes unusable.
 
 Please note that each level automatically includes log messages from a
 more severe level, e.g., `debug` also shows `info` messages. By default,
@@ -174,7 +104,7 @@ Node-RED from being able to decrypt your existing credentials and they will be
 lost._
 
 **Note**: _If you have manually enabled the use of project in Node-RED, this
-option will, eventhough required, be ignored by Node-RED._
+option will, even though required, be ignored by Node-RED._
 
 ### Option: `theme`
 
@@ -183,7 +113,7 @@ Sets one of the Node-RED themes. Currently available options:
 - `default`
 - `aurora`
 - `cobalt2`
-- `dark`
+- `dark-modern`
 - `dracula`
 - `espresso-libre`
 - `github-dark`
@@ -242,10 +172,10 @@ properties can be used:
 ### Option: `system_packages`
 
 Allows you to specify additional [Alpine packages][alpine-packages] to be
-installed to your Node-RED setup (e.g., `g++`. `make`, `ffmpeg`).
+installed to your Node-RED setup (e.g., `g++`, `make`, `ffmpeg`).
 
 **Note**: _Adding many packages will result in a longer start-up time
-for the add-on._
+for the app._
 
 ### Option: `npm_packages`
 
@@ -254,27 +184,41 @@ Allows you to specify additional [NPM packages][npm-packages] or
 (e.g., `node-red-dashboard`, `node-red-contrib-ccu`).
 
 **Note**: _Adding many packages will result in a longer start-up time
-for the add-on._
+for the app._
 
 ### Option: `init_commands`
 
 Customize your Node-RED environment even more with the `init_commands` option.
 Add one or more shell commands to the list, and they will be executed every
-single time this add-on starts.
+single time this app starts.
 
 ### Option: `safe_mode`
 
-Setting this option to `true` will start Node-Red with the `--safe` flag set,
+Setting this option to `true` will start Node-RED with the `--safe` flag set,
 starting the application without starting any flows for troubleshooting.
 
 ### Option: `leave_front_door_open`
 
-Adding this option to the add-on configuration allows you to disable
-authentication on the add-on by setting it to `true` and leaving the
+Adding this option to the app configuration allows you to disable
+authentication on the app by setting it to `true` and leaving the
 username and password empty.
 
-**Note**: _We STRONGLY suggest, not to use this, even if this add-on is
+**Note**: _We STRONGLY suggest, not to use this, even if this app is
 only exposed to your internal network. USE AT YOUR OWN RISK!_
+
+### Option: `expose_node_resources`
+
+Setting this option to `true` makes the static resources shipped by your
+installed nodes (served by Node-RED under `/resources/`) available on the
+direct access port without having to log in with Home Assistant.
+
+This is needed, for example, for third-party [Dashboard 2.0][dashboard-2-widgets]
+widgets, as the dashboard loads them from that location. Without it, viewing
+a dashboard using such widgets asks for your Home Assistant login.
+
+**Note**: _This allows anybody who can reach the direct access port to
+retrieve these files, and by doing so, find out which nodes you have
+installed. Only enable this if you need it._
 
 ### Option: `max_old_space_size`
 
@@ -286,14 +230,14 @@ on garbage collection in an effort to free unused memory.
 
 ## Configuration folder
 
-The addon will store most of its configuration in the Node-RED add-on
+The app will store most of its configuration in the Node-RED app
 configuration folder, including the `flows.json`.
 
 ## Time zone configuration
 
-The add-on will use the time zone configured in Home Assistant settings. If
+The app will use the time zone configured in Home Assistant settings. If
 the time zone is incorrect, update the setting in Home Assistant and restart
-the Node-RED add-on to apply the latest configuration.
+the Node-RED app to apply the latest configuration.
 
 If you would like to override the time zone for Node-RED specifically, this
 can be configured in the `settings.js` file.
@@ -305,20 +249,16 @@ To do so, open the file with a text editor and add the following above the
 
 The time zone will need to reflect your environment.
 
-Save the file and restart the Node-RED add-on.
+Save the file and restart the Node-RED app.
 
 ## Known issues and limitations
 
-- While this add-on ships with Node-RED Dashboard, it currently does not
-  support accessing the dashboard via Ingress. This is a technical limitation
-  on the Node-RED Dashboard end.
-
 - If you cannot access HTTP nodes or Node-RED Dashboard, please check
   if you have enabled direct access mode by setting a port number in
-  "Network" configuration section of the add-on.
+  "Network" configuration section of the app.
 
 - If you cannot access HTTP nodes or Node-RED Dashboard, please check
-  if you URL starts with `/endpoint/`, or else Home Assistant authentication
+  if your URL starts with `/endpoint/`, or else Home Assistant authentication
   will kick in.
 
 - If the following error is seen after an update:
@@ -326,7 +266,7 @@ Save the file and restart the Node-RED add-on.
   Please validate the configuration of the Home Assistant server setup in
   Node-RED. This can be found by double-clicking any Home Assistant node and
   selecting the pencil icon by the server name. The checkbox that states
-  `I use the Home Assistant Add-On` should be checked.
+  `I use the Home Assistant App` should be checked.
 
 ## Changelog & Releases
 
@@ -348,7 +288,7 @@ Got questions?
 
 You have several options to get them answered:
 
-- The [Home Assistant Community Add-ons Discord chat server][discord] for add-on
+- The [Home Assistant Community Apps Discord chat server][discord] for app
   support and feature requests.
 - The [Home Assistant Discord chat server][discord-ha] for general Home
   Assistant discussions and questions.
@@ -356,7 +296,7 @@ You have several options to get them answered:
 - Join the [Reddit subreddit][reddit] in [/r/homeassistant][reddit]
 - The [Node-RED documentation][nodered-docs]
 
-You could also [open an issue here][issue] GitHub.
+You could also [open an issue here][issue] on GitHub.
 
 ## Authors & contributors
 
@@ -369,7 +309,7 @@ check [the contributor's page][contributors].
 
 MIT License
 
-Copyright (c) 2018-2025 Franck Nijhof
+Copyright (c) 2018-2026 Franck Nijhof
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -392,16 +332,17 @@ SOFTWARE.
 [addon-badge]: https://my.home-assistant.io/badges/supervisor_addon.svg
 [addon]: https://my.home-assistant.io/redirect/supervisor_addon/?addon=a0d7b954_nodered&repository_url=https%3A%2F%2Fgithub.com%2Fhassio-addons%2Frepository
 [alpine-packages]: https://pkgs.alpinelinux.org/packages
-[contributors]: https://github.com/hassio-addons/addon-node-red/graphs/contributors
+[contributors]: https://github.com/hassio-addons/app-node-red/graphs/contributors
+[dashboard-2-widgets]: https://dashboard.flowfuse.com/nodes/widgets#third-party-widgets
 [discord-ha]: https://discord.gg/c5DvZ4e
 [discord]: https://discord.me/hassioaddons
 [forum]: https://community.home-assistant.io/t/home-assistant-community-add-on-node-red/55023?u=frenck
 [frenck]: https://github.com/frenck
-[issue]: https://github.com/hassio-addons/addon-node-red/issues
+[issue]: https://github.com/hassio-addons/app-node-red/issues
 [node-red-nodes]: https://flows.nodered.org/?type=node&num_pages=1
 [nodered-docs]: https://nodered.org/docs
 [nodered]: https://nodered.org
 [npm-packages]: https://www.npmjs.com
 [reddit]: https://reddit.com/r/homeassistant
-[releases]: https://github.com/hassio-addons/addon-node-red/releases
+[releases]: https://github.com/hassio-addons/app-node-red/releases
 [semver]: https://semver.org/spec/v2.0.0.html
