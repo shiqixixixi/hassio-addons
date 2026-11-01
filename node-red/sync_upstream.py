@@ -18,6 +18,8 @@
      上游改动了 overlay 里的文件时会打印提示（每个文件只提示一次）
 4. 版本联动：config.yaml 的 version 跟随 package.json 里 node-red 的版本；
    上游 node-red 版本没变但文件有变化时，patch 位自增，保证 HA 能感知到更新。
+5. apk pin 校验：Dockerfile 落地后再对着当前 Alpine 源校验一遍 pin，把已被撤下
+   的旧版本改成仓库里的当前版本（见 refresh_pins.py），避免下次构建直接失败。
 
 用法
 ----
@@ -277,6 +279,35 @@ def sync_dockerfile(upstream: Path, changes: list[str], dry_run: bool) -> None:
     write_if_changed(ADDON_DIR / "Dockerfile", content, changes, dry_run)
 
 
+def refresh_dockerfile_pins(changes: list[str], dry_run: bool) -> None:
+    """同步后校正失效的 apk pin。
+
+    上游 Dockerfile 里的 pin 是同步那一刻的版本，Alpine 撤下旧版本包之后
+    `apk add 包=旧版本` 会直接让构建失败，所以每次同步都顺手校验一遍。
+    """
+    dockerfile = ADDON_DIR / "Dockerfile"
+    if not dockerfile.is_file():
+        return
+    try:
+        import refresh_pins
+    except ImportError:
+        log("未找到 refresh_pins.py，跳过 apk pin 校验")
+        return
+
+    try:
+        updated, notes, problems = refresh_pins.process(dockerfile.read_bytes())
+    except Exception as exc:  # noqa: BLE001 - 网络问题不应该让同步失败
+        log(f"提示：apk pin 校验跳过（{exc}）")
+        return
+
+    for note in notes:
+        log(f"apk pin：{note}")
+    for problem in problems:
+        log(f"注意：{problem}（需要人工确认）")
+    if updated is not None:
+        write_if_changed(dockerfile, updated, changes, dry_run)
+
+
 def apply_overlay(changes: list[str], dry_run: bool) -> None:
     for relative, content in overlay_files().items():
         write_if_changed(ADDON_DIR / relative, content, changes, dry_run)
@@ -479,6 +510,7 @@ def main() -> int:
         for tree in MANAGED_TREES:
             sync_tree(upstream, tree, protected, changes, dry_run)
         sync_dockerfile(upstream, changes, dry_run)
+        refresh_dockerfile_pins(changes, dry_run)
         apply_overlay(changes, dry_run)
         check_overlay_baseline(upstream, changes, dry_run)
         report_config_drift(upstream)
