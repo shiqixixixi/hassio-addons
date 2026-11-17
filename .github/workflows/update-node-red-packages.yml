@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   update-packages:
@@ -53,6 +54,7 @@ jobs:
           python3 node-red/sync_upstream.py --version-only
 
       - name: Commit and push changes
+        id: push
         if: steps.check_changes.outputs.changes == 'true'
         run: |
           git config --global user.name "github-actions[bot]"
@@ -62,3 +64,11 @@ jobs:
           git add node-red/package.json node-red/config.yaml
           git commit -m "chore(node-red): 更新依赖并同步版本 ${version}"
           git push
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      # GITHUB_TOKEN 推送不会触发 push 类型 workflow，这里显式触发构建
+      - name: Trigger add-on build
+        if: steps.push.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run build-addon.yml -f addons=node-red

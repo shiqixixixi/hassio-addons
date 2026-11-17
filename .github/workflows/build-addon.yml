@@ -11,6 +11,11 @@ on:
       - '*/rootfs/**'
       - '*/overlay/**'
   workflow_dispatch:
+    inputs:
+      addons:
+        description: '只构建指定插件目录（空格或逗号分隔，留空=全部）'
+        required: false
+        default: ''
   schedule:
     - cron: "0 3 * * 0"
 
@@ -31,8 +36,13 @@ jobs:
 
       - name: Discover add-ons
         id: discover
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ADDONS_INPUT: ${{ github.event.inputs.addons }}
+          BASE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
-          addons=$(python3 -c "
+          addons=$(python3 - <<'PY'
           import os, json, subprocess
 
           # Get all addon directories
@@ -42,42 +52,48 @@ jobs:
                   if os.path.exists(f'{d}/config.yaml'):
                       all_addons.append(d)
 
-          event = '${{ github.event_name }}'
+          event = os.environ.get('EVENT_NAME', '')
+          requested = os.environ.get('ADDONS_INPUT', '').strip()
 
-          # For push events, only build addons whose files changed
-          if event == 'push':
-              # Get changed files vs previous commit
+          if event == 'workflow_dispatch' and requested:
+              # 显式指定：只构建这些插件（自动更新 workflow 用这个入口触发）
+              wanted = [a for a in requested.replace(',', ' ').split() if a]
+              unknown = [a for a in wanted if a not in all_addons]
+              if unknown:
+                  raise SystemExit(f'Unknown add-on(s): {unknown}. Available: {all_addons}')
+              addons = [a for a in all_addons if a in wanted]
+          elif event == 'push':
+              # 用本次 push 的 before..after 做 diff，覆盖一条 push 里的所有 commit
+              base = os.environ.get('BASE_SHA', '')
+              head = os.environ.get('HEAD_SHA', '') or 'HEAD'
+              if not base or set(base) == {'0'}:
+                  base = 'HEAD~1'
               try:
                   result = subprocess.run(
-                      ['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'],
-                      capture_output=True, text=True
+                      ['git', 'diff', '--name-only', base, head],
+                      capture_output=True, text=True, check=True
                   )
-                  changed_files = result.stdout.strip().split('\n') if result.stdout.strip() else []
+                  changed_files = [f for f in result.stdout.splitlines() if f]
 
-                  # Extract top-level dirs from changed files
                   changed_dirs = set()
                   for f in changed_files:
                       parts = f.split('/')
                       if len(parts) > 1:
                           changed_dirs.add(parts[0])
 
-                  changed_addons = sorted([a for a in all_addons if a in changed_dirs])
-
-                  if changed_addons:
-                      # Only build the addons that were modified
-                      addons = changed_addons
-                  else:
-                      # No addon dirs changed (e.g. only .github/ or root files)
-                      # Build all to validate the workflow still works
-                      addons = all_addons
+                  changed_addons = [a for a in all_addons if a in changed_dirs]
+                  # No addon dirs changed (e.g. only .github/ or root files)
+                  # -> build all to validate the workflow still works
+                  addons = changed_addons or all_addons
               except Exception:
                   addons = all_addons
           else:
-              # workflow_dispatch / schedule -> build all
+              # workflow_dispatch without input / schedule -> build all
               addons = all_addons
 
           print(json.dumps(addons))
-          ")
+          PY
+          )
           echo "addons=${addons}" >> "$GITHUB_OUTPUT"
           echo "Found addons to build: ${addons}"
 
