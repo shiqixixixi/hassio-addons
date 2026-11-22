@@ -16,13 +16,13 @@ RUN \
     apk add --no-cache --virtual .build-dependencies \
         build-base=0.5-r4 \
         linux-headers=7.0.0-r1 \
-        py3-pip=26.1.2-r0 \
+        py3-pip=26.1.2-r1 \
         python3-dev=3.14.10-r1 \
     \
     && apk add --no-cache \
         git=2.54.1-r0 \
         icu-data-full=78.1-r0 \
-        nginx=1.30.6-r0 \
+        nginx=1.30.7-r0 \
         nodejs=24.22.3-r0 \
         npm=11.12.1-r0 \
         openssh-client-default=10.3_p1-r2 \
